@@ -7,23 +7,25 @@ ReAct循环：思考(Thought) -> 行动(Action) -> 观察(Observation) -> 再思
    每一轮"思考"都把这份完整记录喂给LLM看，让它知道"之前做过什么、看到了什么结果"。
 2. 每一轮思考的输出用status字段区分两种情况：
    "continue"（还要继续，带tool+arguments）或"done"（完成，带final_answer）。
-3. 执行有副作用的工具之前，先查has_side_effect，需要用户确认才真正执行——
-   这个判断加在"要不要调用execute_tool_call"这一层，execute_tool_call本身完全不用改。
-4. 循环有MAX_AGENT_STEPS上限，到点了还没完成，要把已有进展诚实地告诉用户，
-   不能装作完成、也不能沉默失败。
-5. 不能完全指望模型自己说"done"：qwen2.5:7b实测中会在操作已经成功之后，
-   继续提出一模一样的操作。这里用确定性的历史比对兜底——如果这次要做的
-   (tool, arguments)跟历史上某一步完全一样、且那一步已经成功过，直接把
-   当时的结果当最终答案返回，不再重复执行、也不再重复问用户确认。
-   注意：这个兜底只拦"完全重复的操作"，不会阻止agent连续执行几次
-   不同参数的有副作用操作（比如连续重命名两个不同的文件）。
+3. 执行有副作用的工具之前，先查has_side_effect，需要用户确认才真正执行。
+4. 循环有MAX_AGENT_STEPS上限，到点了还没完成，要把已有进展诚实地告诉用户。
+5. 不能完全指望模型自己说"done"或者自己意识到"这个操作已经试过了"：
+   - 参数一到手就先做规整化（_normalize_arguments），统一反斜杠等格式问题，
+     不然同一个文件模型每次吐出的反斜杠数量不一样，字符串比较会误判成"不同的操作"。
+   - 用确定性的历史比对(_already_executed)兜底"重复执行"——不管是重复一个
+     已经成功的操作，还是固执地重试一个已经失败的操作，都直接拦下来，
+     不再问用户、也不再重复执行。用户主动拒绝不算"失败"，不会被拉黑。
 """
 
 import json
+import os
+import logging
 from config import MAX_AGENT_STEPS
 from llm.ollama_client import OllamaClient, OllamaClientError
 from tools.registry import TOOL_REGISTRY
 from tools.tool_caller import execute_tool_call, build_tools_prompt
+
+logger = logging.getLogger(__name__)
 
 AGENT_SYSTEM_PROMPT_TEMPLATE = """你是一个任务执行agent，需要通过多轮"思考-行动-观察"来完成用户的请求。
 
@@ -72,7 +74,7 @@ def _think(agent_state: dict, client: OllamaClient) -> dict:
             system=system_prompt,
         )
     except OllamaClientError as e:
-        print(f"[调试] LLM调用失败: {e}")
+        logger.warning(f"LLM调用失败，agent循环兜底为done: {e}")
         return {
             "status": "done",
             "thought": f"思考过程出错: {e}",
@@ -85,7 +87,8 @@ def _think(agent_state: dict, client: OllamaClient) -> dict:
             raise ValueError("status字段不合法")
         return data
     except (json.JSONDecodeError, ValueError, AttributeError) as e:
-        print(f"[调试] 解析失败: {e}\n[调试] 模型原始输出: {raw!r}")
+        logger.warning(f"模型输出解析失败，agent循环兜底为done: {e}")
+        logger.debug(f"模型原始输出: {raw!r}")
         return {
             "status": "done",
             "thought": f"思考过程出错: {e}",
@@ -93,25 +96,42 @@ def _think(agent_state: dict, client: OllamaClient) -> dict:
         }
 
 
+def _normalize_arguments(arguments: dict) -> dict:
+    """
+    统一清理一遍参数里的字符串值，主要解决模型输出路径时反斜杠数量不稳定的问题——
+    同一个文件，这次模型可能吐出1个反斜杠，下次吐出2个，字符串在_already_executed
+    里做精确比较时会被误判成"不同的操作"，重复检测直接失效。
+
+    用os.path.normpath统一规整化：路径类的值会被合并成规范形式（比如把连续的反斜杠
+    合并成一个）；不是路径的普通字符串（比如文件名"2.txt"、语言名"英文"）传进去
+    基本不受影响，所以这里不用逐个判断"这个参数到底是不是路径"，统一处理即可。
+    这一步要在参数刚从模型的决策里取出来时就做，后面不管是判重比对、
+    确认弹窗展示给用户看，还是真正执行，用的都是同一份清理过的参数。
+    """
+    normalized = {}
+    for key, value in arguments.items():
+        normalized[key] = os.path.normpath(value) if isinstance(value, str) else value
+    return normalized
+
+
 def _already_executed(agent_state: dict, tool: str, arguments: dict):
     """
     检查历史步骤里有没有跟这次完全一样(工具名、参数都一样)的操作，且当时成功或失败过。
 
-    合并了原来的 _already_succeeded 和 _already_failed：
-    - 防「成功后重复执行」：LLM 在操作已成功后还提同样的操作
-    - 防「失败后重复执行」：LLM 在工具报错后固执地重试同一个操作
+    - 防"成功后重复执行"：LLM在操作已成功后还提同样的操作
+    - 防"失败后重复执行"：LLM在工具报错后固执地重试同一个操作
 
-    注意：用户主动拒绝(confirm_callback 返回 False)不算"失败"，
-    因为那是用户的选择，不是操作本身有问题。否则用户拒绝一次后，
-    这个操作就被永久拉黑，连改主意的机会都没有了。
+    注意：用户主动拒绝(confirm_callback返回False)不算"失败"，因为那是用户的选择，
+    不是操作本身有问题——否则用户拒绝一次后，这个操作就被永久拉黑，
+    连改主意的机会都没有了。
 
     返回 (outcome, detail)：
-    - ("succeeded", 那次的 output)  如果历史上成功过（优先）
-    - ("failed",    那次的 error)   如果历史上失败过
-    - (None,        None)           如果没执行过，或只有用户拒绝记录
+    - ("succeeded", 那次的output)  如果历史上成功过（优先）
+    - ("failed",    那次的error)   如果历史上失败过（且不是用户拒绝）
+    - (None, None)                  如果没执行过，或只有用户拒绝的记录
     """
-    succeeded = None  # 成功时那次的结果
-    failed = None  # 失败时那次的错误信息
+    succeeded = None
+    failed = None
 
     for step in agent_state["steps"]:
         obs = step["observation"]
@@ -138,6 +158,16 @@ def _success_summary(tool: str, output) -> str:
     return f"已完成「{tool}」操作，结果：{result_text}"
 
 
+def _failure_summary(tool: str, error) -> str:
+    """把一次重复出现的失败结果，转成一句诚实告知用户的话，而不是再问一次确认。"""
+    error_text = json.dumps(error, ensure_ascii=False) if not isinstance(error, str) else error
+    return (
+        f"「{tool}」操作之前已经执行过一次，但没有成功，错误信息是：{error_text}。\n"
+        f"我没有再重复尝试同一个操作。请检查一下输入的信息（比如文件名、路径是否正确），"
+        f"或者换一种方式告诉我你想怎么做？"
+    )
+
+
 def run_agent_loop(user_request: str, client: OllamaClient, confirm_callback) -> str:
     """
     confirm_callback: 一个函数，签名是 (tool: str, arguments: dict) -> bool，
@@ -154,9 +184,8 @@ def run_agent_loop(user_request: str, client: OllamaClient, confirm_callback) ->
         tool = decision.get("tool")
         arguments = _normalize_arguments(decision.get("arguments", {}))
 
-        # 确定性兜底1：这次要做的操作，历史上是不是已经做过且成功了？
+        # 确定性兜底：这次要做的操作，历史上是不是已经做过（成功或失败）？
         outcome, detail = _already_executed(agent_state, tool, arguments)
-
         if outcome == "succeeded":
             return _success_summary(tool, detail)
         if outcome == "failed":
@@ -174,8 +203,7 @@ def run_agent_loop(user_request: str, client: OllamaClient, confirm_callback) ->
                 continue
 
         result = execute_tool_call(tool, arguments)
-
-        print(f"[调试] 执行结果: {result}")
+        logger.info(f"工具执行完成: tool={tool}, arguments={arguments}, result={result}")
         agent_state["steps"].append({
             "thought": decision.get("thought", ""),
             "action": {"tool": tool, "arguments": arguments},
@@ -191,27 +219,3 @@ def _summarize_unfinished(agent_state: dict) -> str:
         lines.append(f"{i}. {step['thought']}")
     lines.append("要不要告诉我接下来怎么继续，或者换个更具体的说法？")
     return "\n".join(lines)
-
-def _failure_summary(tool: str, error) -> str:
-    """把一次已失败的工具执行结果，转成一句给用户的最终回复。"""
-    error_text = json.dumps(error, ensure_ascii=False) if not isinstance(error, str) else error
-    return (
-        f"「{tool}」操作之前已经执行过一次，但没有成功，错误信息是：{error_text}。\n"
-        f"我没有再重复尝试同一个操作。请检查一下输入的信息（比如文件名、路径是否正确），"
-        f"或者换一种方式告诉我你想怎么做？"
-    )
-
-def _normalize_arguments(arguments: dict) -> dict:
-    """只做无损规范化：合并连续的反斜杠/斜杠，不改变路径结构。"""
-    normalized = {}
-    for key, value in arguments.items():
-        if isinstance(value, str):
-            # 多个连续反斜杠 -> 单个；多个连续正斜杠 -> 单个
-            while "\\\\" in value:
-                value = value.replace("\\\\", "\\")
-            while "//" in value:
-                value = value.replace("//", "/")
-            normalized[key] = value
-        else:
-            normalized[key] = value
-    return normalized

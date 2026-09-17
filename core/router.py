@@ -11,7 +11,11 @@
 """
 
 import json
+import time
+import logging
 from llm.ollama_client import OllamaClient, OllamaClientError
+
+logger = logging.getLogger(__name__)
 
 VALID_INTENTS = {"chat", "rag", "file_tool", "skill"}
 
@@ -53,20 +57,24 @@ def classify_by_llm(user_input: str, client: OllamaClient) -> tuple[str, str]:
     source 为 "fallback" 表示解析失败/类别不合法，安全兜底为chat。
     """
     try:
+        start = time.time()
         raw = client.chat(
             messages=[{"role": "user", "content": user_input}],
             stream=False,
             system=ROUTER_SYSTEM_PROMPT,
         )
+        logger.info(f"路由分类耗时: {time.time() - start:.2f}秒")
         data = json.loads(raw)
         intent = data.get("intent")
         if intent in VALID_INTENTS:
             return intent, "llm"
+        logger.warning(f"路由分类返回了不合法的intent: {intent!r}，兜底为chat")
         return "chat", "fallback"
-    except (OllamaClientError, json.JSONDecodeError, AttributeError):
+    except (OllamaClientError, json.JSONDecodeError, AttributeError) as e:
         # OllamaClientError: 模型调用本身失败（服务挂了/超时）
         # JSONDecodeError: 模型没按要求输出JSON
         # AttributeError: data不是字典（比如模型返回了一个列表或纯文本）
+        logger.warning(f"路由分类失败，兜底为chat: {e}")
         return "chat", "fallback"
 
 

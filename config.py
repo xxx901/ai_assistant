@@ -18,3 +18,7 @@ RAG_SCORE_THRESHOLD = 0.35  # 相关度阈值，初始值，后面要用真实�
 
 # --- Agent控制循环相关配置 ---
 MAX_AGENT_STEPS = 5  # 最多循环几轮，超过还没完成就诚实汇报进展，不硬跑下去
+
+# --- 日志配置 ---
+LOG_LEVEL = "INFO"                 # 排查问题时可临时改成"DEBUG"看更详细的内部信息
+LOG_FILE_PATH = "./data/logs/app.log"
