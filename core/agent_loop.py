@@ -93,23 +93,43 @@ def _think(agent_state: dict, client: OllamaClient) -> dict:
         }
 
 
-def _already_succeeded(agent_state: dict, tool: str, arguments: dict):
-    """ attention：导致系统变慢的主要原因
-    检查历史步骤里有没有跟这次完全一样(工具名、参数都一样)、且当时已经成功过的操作。
-    跟历史上'任何一步'比对，不只是紧邻的上一步——因为中间可能隔了几次
-    只读操作（比如list_files），重复的操作不一定紧挨着出现。
-    返回 (True, 那次的output) 或 (False, None)。
+def _already_executed(agent_state: dict, tool: str, arguments: dict):
     """
+    检查历史步骤里有没有跟这次完全一样(工具名、参数都一样)的操作，且当时成功或失败过。
+
+    合并了原来的 _already_succeeded 和 _already_failed：
+    - 防「成功后重复执行」：LLM 在操作已成功后还提同样的操作
+    - 防「失败后重复执行」：LLM 在工具报错后固执地重试同一个操作
+
+    注意：用户主动拒绝(confirm_callback 返回 False)不算"失败"，
+    因为那是用户的选择，不是操作本身有问题。否则用户拒绝一次后，
+    这个操作就被永久拉黑，连改主意的机会都没有了。
+
+    返回 (outcome, detail)：
+    - ("succeeded", 那次的 output)  如果历史上成功过（优先）
+    - ("failed",    那次的 error)   如果历史上失败过
+    - (None,        None)           如果没执行过，或只有用户拒绝记录
+    """
+    succeeded = None  # 成功时那次的结果
+    failed = None  # 失败时那次的错误信息
+
     for step in agent_state["steps"]:
         obs = step["observation"]
-        if (
-            isinstance(obs, dict)
-            and obs.get("success") is True
-            and step["action"]["tool"] == tool
-            and step["action"]["arguments"] == arguments
-        ):
-            return True, obs.get("output")
-    return False, None
+        if not isinstance(obs, dict):
+            continue
+        if step["action"]["tool"] != tool or step["action"]["arguments"] != arguments:
+            continue
+
+        if obs.get("success"):
+            succeeded = obs.get("output")
+        elif obs.get("success") is False and obs.get("error") != "用户拒绝执行这个操作":
+            failed = obs.get("error")
+
+    if succeeded is not None:
+        return "succeeded", succeeded
+    if failed is not None:
+        return "failed", failed
+    return None, None
 
 
 def _success_summary(tool: str, output) -> str:
@@ -132,13 +152,15 @@ def run_agent_loop(user_request: str, client: OllamaClient, confirm_callback) ->
             return decision["final_answer"]
 
         tool = decision.get("tool")
-        arguments = decision.get("arguments", {})
+        arguments = _normalize_arguments(decision.get("arguments", {}))
 
-        # 确定性兜底：这次要做的操作，历史上是不是已经做过且成功了？
-        # 不依赖模型自己"意识到"重复，直接用记录比对。
-        already_done, prior_output = _already_succeeded(agent_state, tool, arguments)
-        if already_done:
-            return _success_summary(tool, prior_output)
+        # 确定性兜底1：这次要做的操作，历史上是不是已经做过且成功了？
+        outcome, detail = _already_executed(agent_state, tool, arguments)
+
+        if outcome == "succeeded":
+            return _success_summary(tool, detail)
+        if outcome == "failed":
+            return _failure_summary(tool, detail)
 
         tool_info = TOOL_REGISTRY.get(tool)
         if tool_info and tool_info.get("has_side_effect"):
@@ -169,3 +191,27 @@ def _summarize_unfinished(agent_state: dict) -> str:
         lines.append(f"{i}. {step['thought']}")
     lines.append("要不要告诉我接下来怎么继续，或者换个更具体的说法？")
     return "\n".join(lines)
+
+def _failure_summary(tool: str, error) -> str:
+    """把一次已失败的工具执行结果，转成一句给用户的最终回复。"""
+    error_text = json.dumps(error, ensure_ascii=False) if not isinstance(error, str) else error
+    return (
+        f"「{tool}」操作之前已经执行过一次，但没有成功，错误信息是：{error_text}。\n"
+        f"我没有再重复尝试同一个操作。请检查一下输入的信息（比如文件名、路径是否正确），"
+        f"或者换一种方式告诉我你想怎么做？"
+    )
+
+def _normalize_arguments(arguments: dict) -> dict:
+    """只做无损规范化：合并连续的反斜杠/斜杠，不改变路径结构。"""
+    normalized = {}
+    for key, value in arguments.items():
+        if isinstance(value, str):
+            # 多个连续反斜杠 -> 单个；多个连续正斜杠 -> 单个
+            while "\\\\" in value:
+                value = value.replace("\\\\", "\\")
+            while "//" in value:
+                value = value.replace("//", "/")
+            normalized[key] = value
+        else:
+            normalized[key] = value
+    return normalized
