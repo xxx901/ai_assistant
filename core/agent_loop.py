@@ -97,20 +97,18 @@ def _think(agent_state: dict, client: OllamaClient) -> dict:
 
 
 def _normalize_arguments(arguments: dict) -> dict:
-    """
-    统一清理一遍参数里的字符串值，主要解决模型输出路径时反斜杠数量不稳定的问题——
-    同一个文件，这次模型可能吐出1个反斜杠，下次吐出2个，字符串在_already_executed
-    里做精确比较时会被误判成"不同的操作"，重复检测直接失效。
-
-    用os.path.normpath统一规整化：路径类的值会被合并成规范形式（比如把连续的反斜杠
-    合并成一个）；不是路径的普通字符串（比如文件名"2.txt"、语言名"英文"）传进去
-    基本不受影响，所以这里不用逐个判断"这个参数到底是不是路径"，统一处理即可。
-    这一步要在参数刚从模型的决策里取出来时就做，后面不管是判重比对、
-    确认弹窗展示给用户看，还是真正执行，用的都是同一份清理过的参数。
-    """
+    """只做无损规范化：合并连续的反斜杠/斜杠，不改变路径结构。"""
     normalized = {}
     for key, value in arguments.items():
-        normalized[key] = os.path.normpath(value) if isinstance(value, str) else value
+        if isinstance(value, str):
+            # 多个连续反斜杠 -> 单个；多个连续正斜杠 -> 单个
+            while "\\\\" in value:
+                value = value.replace("\\\\", "\\")
+            while "//" in value:
+                value = value.replace("//", "/")
+            normalized[key] = value
+        else:
+            normalized[key] = value
     return normalized
 
 

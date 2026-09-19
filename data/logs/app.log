@@ -6,3 +6,32 @@
 2026-09-17 14:10:52 [INFO] core.router: 路由分类耗时: 2.99秒
 2026-09-17 14:10:52 [INFO] __main__: 路由结果: intent=chat, source=llm
 2026-09-17 14:11:00 [INFO] __main__: 对话首Token延迟: 7.35秒
+2026-09-17 14:45:46 [INFO] __main__: 助手启动中...
+2026-09-17 14:45:46 [INFO] __main__: 启动完成，模型=qwen2.5:7b，历史记录条数=20
+2026-09-17 14:46:40 [INFO] __main__: 路由结果: intent=file_tool, source=rule
+2026-09-17 14:47:10 [WARNING] core.agent_loop: LLM调用失败，agent循环兜底为done: 请求超时（超过 30 秒）
+2026-09-17 14:47:51 [INFO] __main__: 助手启动中...
+2026-09-17 14:47:51 [INFO] __main__: 启动完成，模型=qwen2.5:7b，历史记录条数=20
+2026-09-17 14:48:09 [INFO] core.router: 路由分类耗时: 9.96秒
+2026-09-17 14:48:09 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-17 14:48:18 [INFO] __main__: 对话首Token延迟: 8.67秒
+2026-09-17 14:48:37 [INFO] __main__: 路由结果: intent=file_tool, source=rule
+2026-09-17 14:48:53 [INFO] core.agent_loop: 工具执行完成: tool=rename_file, arguments={'old_path': 'D:\\studyforai\\ai_assistant\\test\\1.txt', 'new_name': '5.txt'}, result={'success': False, 'error': "工具执行失败: [WinError 2] 系统找不到指定的文件。: 'D:\\\\studyforai\\\\ai_assistant\\\\test\\\\1.txt' -> 'D:\\\\studyforai\\\\ai_assistant\\\\test\\\\5.txt'"}
+2026-09-17 14:49:16 [INFO] __main__: 路由结果: intent=file_tool, source=rule
+2026-09-17 14:49:30 [INFO] core.agent_loop: 工具执行完成: tool=rename_file, arguments={'old_path': 'D:\\studyforai\\ai_assistant\\test\\2.txt', 'new_name': '5.txt'}, result={'success': True, 'output': 'D:\\studyforai\\ai_assistant\\test\\5.txt'}
+2026-09-17 15:12:14 [INFO] __main__: 助手启动中...
+2026-09-17 15:12:14 [INFO] __main__: 启动完成，模型=qwen3:4b，历史记录条数=20
+2026-09-17 15:12:44 [INFO] core.router: 路由分类耗时: 12.99秒
+2026-09-17 15:12:44 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-17 15:13:05 [INFO] __main__: 对话首Token延迟: 21.05秒
+2026-09-17 15:14:31 [INFO] core.router: 路由分类耗时: 5.84秒
+2026-09-17 15:14:31 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-17 15:14:45 [INFO] __main__: 对话首Token延迟: 13.95秒
+2026-09-17 15:15:28 [INFO] __main__: 助手启动中...
+2026-09-17 15:15:28 [INFO] __main__: 启动完成，模型=qwen2.5:7b，历史记录条数=20
+2026-09-17 15:15:51 [INFO] core.router: 路由分类耗时: 16.65秒
+2026-09-17 15:15:51 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-17 15:15:59 [INFO] __main__: 对话首Token延迟: 7.70秒
+2026-09-17 15:19:23 [INFO] core.router: 路由分类耗时: 0.90秒
+2026-09-17 15:19:23 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-17 15:19:31 [INFO] __main__: 对话首Token延迟: 7.49秒
