@@ -34,7 +34,7 @@ class OllamaClient:
         self.timeout = timeout
         self.num_gpu = num_gpu  # None=用Ollama默认策略；0=强制纯CPU；正整数=指定放几层到GPU
 
-    def chat(self, messages: list, stream: bool = False, system: str = None):
+    def chat(self, messages: list, stream: bool = False, system: str = None, format_json: bool = False):
         """
         调用本地模型进行对话。
 
@@ -44,6 +44,9 @@ class OllamaClient:
             stream:   False -> 返回完整字符串（适合意图路由这种要一次性拿结果的场景）
                       True  -> 返回一个生成器，逐块yield文字（适合聊天界面，边生成边显示）
             system:   可选的系统提示词，会自动插到messages最前面
+            format_json: True -> 走Ollama原生的JSON模式(强制模型输出JSON)，
+                         适合结构化提炼/分类这类要稳定解析的场景。返回仍是字符串，
+                         由上层自己 json.loads，失败照常兜底。
 
         异常：
             OllamaClientError: Ollama服务未启动 / 超时 / 返回错误状态码时抛出
@@ -58,6 +61,8 @@ class OllamaClient:
             "messages": payload_messages,
             "stream": stream,
         }
+        if format_json:
+            payload["format"] = "json"
         if self.num_gpu is not None:
             payload["options"] = {"num_gpu": self.num_gpu}
 

@@ -48,3 +48,33 @@
 2026-09-22 14:11:36 [INFO] core.router: 路由分类耗时: 1.03秒
 2026-09-22 14:11:36 [INFO] __main__: 路由结果: intent=rag, source=llm
 2026-09-22 14:11:36 [INFO] __main__: RAG未检索到相关内容，退化为通用回答
+2026-09-22 15:07:25 [INFO] __main__: 助手启动中...
+2026-09-22 15:07:25 [INFO] __main__: 启动完成，模型=qwen2.5:7b，长期记忆条数=0
+2026-09-22 15:07:48 [INFO] core.router: 路由分类耗时: 12.12秒
+2026-09-22 15:07:48 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-22 15:07:49 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-22 15:07:49 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/config.json?%2FBAAI%2Fbge-m3%2Fresolve%2Fmain%2Fconfig.json=&etag=%22e6eda1c72da8f9dc30fdd9b69c73d35af3b7a7ad%22 "HTTP/1.1 200 OK"
+2026-09-22 15:07:50 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/BAAI/bge-m3/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-22 15:07:50 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/BAAI/bge-m3/5617a9f61b028005a4858fdac845db406aefb181/tokenizer_config.json?%2FBAAI%2Fbge-m3%2Fresolve%2Fmain%2Ftokenizer_config.json=&etag=%22dc69ac559dcba2694012009aaa108c614541789a%22 "HTTP/1.1 200 OK"
+2026-09-22 15:07:50 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-22 15:07:51 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-22 15:07:53 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3 "HTTP/1.1 200 OK"
+2026-09-22 15:07:54 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/BAAI/bge-m3/revision/main "HTTP/1.1 200 OK"
+2026-09-22 15:07:57 [INFO] FlagEmbedding.finetune.embedder.encoder_only.m3.runner: loading existing colbert_linear and sparse_linear---------
+2026-09-22 15:07:59 [INFO] __main__: 对话首Token延迟: 0.77秒
+2026-09-22 15:08:06 [INFO] memory.manager: 记忆实时写入: 新增1条 更新0条
+2026-09-22 15:08:22 [INFO] core.router: 路由分类耗时: 0.88秒
+2026-09-22 15:08:22 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-22 15:08:23 [INFO] __main__: 对话首Token延迟: 1.00秒
+2026-09-22 15:08:26 [INFO] memory.manager: 记忆实时写入: 新增0条 更新1条
+2026-09-22 15:10:47 [INFO] core.router: 路由分类耗时: 1.03秒
+2026-09-22 15:10:47 [INFO] __main__: 路由结果: intent=rag, source=llm
+2026-09-22 15:10:47 [INFO] __main__: RAG未检索到相关内容，退化为通用回答
+2026-09-22 15:11:51 [INFO] core.router: 路由分类耗时: 0.86秒
+2026-09-22 15:11:51 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-22 15:11:53 [INFO] __main__: 对话首Token延迟: 1.20秒
+2026-09-22 15:11:58 [INFO] memory.manager: 记忆实时写入: 新增1条 更新0条
+2026-09-22 15:13:02 [INFO] core.router: 路由分类耗时: 0.74秒
+2026-09-22 15:13:02 [INFO] __main__: 路由结果: intent=chat, source=llm
+2026-09-22 15:13:04 [INFO] __main__: 对话首Token延迟: 1.95秒
+2026-09-22 15:13:11 [INFO] memory.manager: 记忆实时写入: 新增0条 更新1条

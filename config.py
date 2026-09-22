@@ -38,3 +38,13 @@ MAX_AGENT_STEPS = 5  # 最多循环几轮，超过还没完成就诚实汇报进
 # --- 日志配置 ---
 LOG_LEVEL = "INFO"                 # 排查问题时可临时改成"DEBUG"看更详细的内部信息
 LOG_FILE_PATH = "./data/logs/app.log"
+
+# --- Memory配置（用户画像长期记忆，与RAG文档库正交）---
+MEMORY_DB_PATH = "./data/memory_lancedb"  # 独立DB，避免和RAG的 ./data/lancedb 互相污染
+MEMORY_TABLE_NAME = "memories"
+MEMORY_DEDUP_THRESHOLD = 0.88      # 余弦相似度超过它视为"同一条记忆"，更新而非新增
+MEMORY_IMPORTANCE_THRESHOLD = 4    # importance>=它 实时写，否则进会话末缓冲区统一提炼
+MEMORY_RETRIEVAL_TOP_K = 8         # 长期记忆语义召回的上限条数
+MEMORY_RECENT_K = 5                # "最近"路召回条数
+MEMORY_RANKING_WEIGHTS = {"similarity": 0.5, "importance": 0.3, "recency": 0.2}  # 三项权重和为1
+SHORT_TERM_MAX_TOKENS = 4000       # 短期记忆的token预算（按token裁剪，不是按条数）
