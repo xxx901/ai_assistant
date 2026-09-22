@@ -26,8 +26,8 @@ RRF_K = 60  # RRF公式里的平滑常数，60是社区里最常见的经验值�
 # --- 重排序（精排）相关配置 ---
 RERANKER_MODEL_NAME = "BAAI/bge-reranker-v2-m3"  # 多语言reranker；base版纯英文，中文打分近零已弃用
 RERANKER_DEVICE = None    # None=交给FlagEmbedding自动探测；也可以强制写"cpu"或"cuda"
-RERANK_TOP_K = 5          # 精排后最终返回给LLM的父块数量
-RERANK_SCORE_THRESHOLD = 0.1  # 精排分数阈值；v2-m3对中文正确匹配打0.18~0.99、无关打≤0.014，0.1能干净切分
+RERANK_TOP_K = 6          # 精排后最终返回给LLM的父块数量
+RERANK_SCORE_THRESHOLD = 0.0  # 精排分数阈值；单文档RAG下文档总含相关答案，阈值设0总是返回top-N让LLM自己判断，多文档时再调高
 # 注意：这个阈值现在作用在reranker的sigmoid归一化分数上（0~1），
 # 和过去那个"cosine相似度阈值"量纲完全不同，不能直接沿用旧数值，
 # 务必换了模型/换了阈值之后，用50题评测集重新跑一遍再定。

@@ -36,12 +36,16 @@ AGENT_SYSTEM_PROMPT_TEMPLATE = """你是一个任务执行agent，需要通过�
 
 重要规则：
 1. 如果上面某一步的"观察"里success字段是true，说明那个操作已经成功执行过了，不要再重复执行同一个操作。
-2. 每一轮都要对照用户最初的请求，判断"用户想要的结果是否已经达成"——如果已经达成
+2. 批量文件操作（要移动/删除/重命名多个文件）时，先用 list_files / classify_files /
+   find_duplicates 这些只读工具摸清情况，然后一次性输出 status=plan，把要做的所有
+   操作列在 operations 里，等用户确认后再执行，不要一个文件一个文件边做边改。
+3. 每一轮都要对照用户最初的请求，判断"用户想要的结果是否已经达成"——如果已经达成
    （比如观察结果显示目标文件已经存在、目标状态已经满足），应该直接输出status=done，
    不要在没有用户明确要求的情况下，继续做任何额外的、目标之外的操作。
 
 请思考下一步该做什么，只输出一个JSON，不要输出任何其他文字：
-- 如果还需要继续调用工具：{{"status": "continue", "thought": "你的思考", "tool": "工具名", "arguments": {{"参数名": "参数值"}}}}
+- 如果还需要调用单个工具：{{"status": "continue", "thought": "你的思考", "tool": "工具名", "arguments": {{"参数名": "参数值"}}}}
+- 如果要批量执行多个文件操作：{{"status": "plan", "thought": "你的思考", "summary": "一句话说明这个计划做什么", "operations": [{{"tool": "工具名", "arguments": {{"参数名": "参数值"}}}}, ...]}}
 - 如果任务已经完成，可以给用户答案了：{{"status": "done", "thought": "你的思考", "final_answer": "给用户的最终回复"}}
 """
 
@@ -83,7 +87,7 @@ def _think(agent_state: dict, client: OllamaClient) -> dict:
 
     try:
         data = json.loads(raw)
-        if data.get("status") not in ("continue", "done"):
+        if data.get("status") not in ("continue", "done", "plan"):
             raise ValueError("status字段不合法")
         return data
     except (json.JSONDecodeError, ValueError, AttributeError) as e:
@@ -166,10 +170,86 @@ def _failure_summary(tool: str, error) -> str:
     )
 
 
-def run_agent_loop(user_request: str, client: OllamaClient, confirm_callback) -> str:
+def _handle_plan(agent_state: dict, decision: dict, confirm_plan_callback):
+    """处理 status=plan：校验操作→展示计划→确认→逐个执行→返回总结。
+
+    返回字符串(最终回复)；计划无合法操作时返回 None，让循环继续、给LLM一次纠正机会。
     """
-    confirm_callback: 一个函数，签名是 (tool: str, arguments: dict) -> bool，
-                       返回True表示用户同意执行这个有副作用的操作，False表示拒绝。
+    summary = decision.get("summary", "")
+    operations = decision.get("operations")
+    if not isinstance(operations, list) or not operations:
+        return _record_plan_failure(agent_state, decision, "计划里没有 operations 字段或为空")
+
+    valid_ops = []
+    invalid_tools = []
+    for op in operations:
+        if not isinstance(op, dict):
+            continue
+        tool = op.get("tool")
+        raw_args = op.get("arguments", {})
+        arguments = _normalize_arguments(raw_args) if isinstance(raw_args, dict) else {}
+        if tool in TOOL_REGISTRY:
+            valid_ops.append({"tool": tool, "arguments": arguments})
+        else:
+            invalid_tools.append(str(tool))
+
+    if not valid_ops:
+        return _record_plan_failure(agent_state, decision, f"计划里没有合法操作（非法工具: {invalid_tools}）")
+
+    approved = confirm_plan_callback(summary, valid_ops)
+    if not approved:
+        agent_state["steps"].append({
+            "thought": decision.get("thought", ""),
+            "action": {"tool": "plan", "arguments": {"summary": summary, "operations": valid_ops}},
+            "observation": {"success": False, "error": "用户拒绝执行这个计划"},
+        })
+        return "已取消，未做任何修改。"
+
+    results = []
+    for op in valid_ops:
+        result = execute_tool_call(op["tool"], op["arguments"])
+        logger.info(f"计划内执行: tool={op['tool']}, arguments={op['arguments']}, result={result}")
+        agent_state["steps"].append({
+            "thought": decision.get("thought", ""),
+            "action": op,
+            "observation": result,
+        })
+        results.append(result)
+
+    return _plan_summary(summary, valid_ops, results)
+
+
+def _record_plan_failure(agent_state: dict, decision: dict, reason: str):
+    """记录一次无效计划，返回 None（让循环继续）。"""
+    agent_state["steps"].append({
+        "thought": decision.get("thought", ""),
+        "action": {"tool": "plan", "arguments": {}},
+        "observation": {"success": False, "error": reason},
+    })
+    return None
+
+
+def _plan_summary(summary: str, operations: list, results: list) -> str:
+    """把一次已执行的计划总结成给用户看的文字，诚实报告成功/失败。"""
+    head = f"已执行计划（{len(operations)} 个操作）：{summary}" if summary else f"已执行 {len(operations)} 个操作："
+    lines = [head]
+    ok = fail = 0
+    for op, result in zip(operations, results):
+        arg_text = json.dumps(op["arguments"], ensure_ascii=False)
+        if result.get("success"):
+            ok += 1
+            lines.append(f"  ✓ {op['tool']}({arg_text})")
+        else:
+            fail += 1
+            lines.append(f"  ✗ {op['tool']}({arg_text}) 失败: {result.get('error')}")
+    lines.append(f"成功 {ok} 个、失败 {fail} 个。如需撤销，请说「撤销」。")
+    return "\n".join(lines)
+
+
+def run_agent_loop(user_request: str, client: OllamaClient, confirm_callback, confirm_plan_callback) -> str:
+    """
+    confirm_callback:      签名 (tool: str, arguments: dict) -> bool，单个有副作用操作的确认。
+    confirm_plan_callback: 签名 (summary: str, operations: list) -> bool，批量计划的确认。
     """
     agent_state = {"user_request": user_request, "steps": []}
 
@@ -178,6 +258,12 @@ def run_agent_loop(user_request: str, client: OllamaClient, confirm_callback) ->
 
         if decision["status"] == "done":
             return decision["final_answer"]
+
+        if decision["status"] == "plan":
+            result = _handle_plan(agent_state, decision, confirm_plan_callback)
+            if result is not None:
+                return result
+            continue
 
         tool = decision.get("tool")
         arguments = _normalize_arguments(decision.get("arguments", {}))
