@@ -23,6 +23,7 @@ import json
 import uuid
 import numpy as np
 import lancedb
+from pypdf import PdfReader
 from FlagEmbedding import BGEM3FlagModel
 
 from config import (
@@ -72,10 +73,46 @@ def split_into_child_chunks(text: str, chunk_size: int = CHILD_CHUNK_SIZE, overl
     return chunks
 
 
+def _read_document(file_path: str) -> str:
+    """按扩展名分派读取方式：PDF用pypdf逐页抽文本，其余按UTF-8文本读取。
+
+    PDF没有"字符流"概念，抽出来的文本在页与页之间、甚至同一页不同区块之间
+    都可能不连续，所以这里用换行符把每一页的文本接起来，而不是直接拼接——
+    避免前一页末尾和后一页开头两个词被硬接成一个词。
+    """
+    if file_path.lower().endswith(".pdf"):
+        reader = PdfReader(file_path)
+        text = "\n".join((page.extract_text() or "") for page in reader.pages)
+        return _clean_pdf_text(text)
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def _clean_pdf_text(text: str) -> str:
+    """清洗PDF抽取出来的文本，去掉会污染向量检索的排版噪声。
+
+    PDF没有"字符流"概念，标题装饰线会被抽成一长串'_'，页内换行和段间距
+    也会被抽成各种数量的空白。这些噪声混进父块后，会稀释真正有用的内容，
+    让reranker打分偏低（中文论文标题下那条下划线尤其明显）。这里只做
+    最保守的清洗，不动正文文字本身。
+    """
+    import re
+    # 连续下划线（标题装饰线，实测最长128个）→ 整段删除
+    text = re.sub(r"_{3,}", "", text)
+    # 作者邮箱（论文首页那一串 xxx@xxx.com）是纯噪声，混进父块会稀释
+    # "作者来自哪个机构"这类题的检索信号，直接删掉。
+    text = re.sub(r"\S+@\S+", "", text)
+    # 行尾多余空格/制表符 → 删除
+    text = re.sub(r"[ \t]+\n", "\n", text)
+    # 3 个以上连续换行 → 2 个，保留段落边界但去掉夸张空行
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text
+
+
 def index_document(file_path: str):
     """读取一个文档，完成父子分块 -> 嵌入(dense+sparse) -> 存储的完整流程。"""
-    with open(file_path, "r", encoding="utf-8") as f:
-        full_text = f.read()
+    full_text = _read_document(file_path)
 
     parents = split_into_parent_chunks(full_text)
     parent_store = _load_parent_store()

@@ -9,10 +9,11 @@
    两路排名各自取前COARSE_TOP_K，用RRF(Reciprocal Rank Fusion)融合成一个排序——
    RRF只看"排第几"不看具体分数数值，天然绕开"dense的cosine相似度"和
    "sparse的词法匹配分数"两者量纲不同、没法直接相加的问题。
-2. 融合后的候选按parent_id去重(同一个父块下多个子块命中，只保留排名最靠前那次)。
-3. 精排：把去重后的父块全文和query一起送进cross-encoder reranker重新打分排序，
-   取分数最高的RERANK_TOP_K个——这一步比粗排慢得多，所以候选数量必须先在
-   粗排阶段被控制在COARSE_TOP_K以内，不能把全量语料都塞进来跑。
+2. 精排：融合后的候选子块(短、语义聚焦)直接和query一起送进cross-encoder
+   reranker重新打分。这里刻意对"子块"精排而不是对"父块"——父块800字太长，
+   关键信息会被作者邮箱、脚注等噪声稀释，cross-encoder打分会被拉低。
+3. 把精排命中的子块按parent_id去重、映射回父块全文，作为最终喂给LLM的上下文，
+   再按阈值过滤。这样"检索精度"(短子块)和"生成时的上下文完整性"(长父块)两不误。
 4. 按RERANK_SCORE_THRESHOLD过滤：分数太低说明知识库里其实没有相关内容，
    诚实地告诉调用方"没找到"，而不是硬塞不相关的内容进去噪音答案。
 
@@ -65,7 +66,7 @@ def retrieve(query: str) -> dict:
     # all_rows只加载一次，dense召回和sparse召回都从这份内存数据里算，
     # 避免重复查表——10万字量级下这份数据本来就不大，全量加载到内存完全没问题，
     # 语料规模大到需要担心这一步之前，通常reranker早就是更大的瓶颈了。
-    all_rows = table.to_list()
+    all_rows = table.to_arrow().to_pylist()
     id_to_row = {row["id"]: row for row in all_rows}
 
     dense_hits = table.search(query_vector).distance_type("cosine").limit(COARSE_TOP_K).to_list()
@@ -81,16 +82,21 @@ def retrieve(query: str) -> dict:
     fused_ids = _reciprocal_rank_fusion([dense_ranked_ids, sparse_ranked_ids])[:COARSE_TOP_K]
     logger.debug(f"混合粗排耗时: {time.time() - t0:.3f}秒，融合候选数={len(fused_ids)}")
 
-    parent_store = _load_parent_store()
-    candidates = _dedupe_to_parents(fused_ids, id_to_row, parent_store)
-    if not candidates:
+    child_candidates = []
+    for child_id in fused_ids:
+        row = id_to_row.get(child_id)
+        if row is None:
+            continue
+        child_candidates.append({"text": row["text"], "parent_id": row["parent_id"]})
+    if not child_candidates:
         return {"found": False, "contexts": []}
 
     t0 = time.time()
-    reranked = rerank(query, candidates, top_k=RERANK_TOP_K)
+    reranked = rerank(query, child_candidates, top_k=RERANK_TOP_K)
     logger.debug(f"精排耗时: {time.time() - t0:.3f}秒")
 
-    contexts = [c for c in reranked if c["score"] >= RERANK_SCORE_THRESHOLD]
+    parent_store = _load_parent_store()
+    contexts = _map_children_to_parents(reranked, parent_store, RERANK_SCORE_THRESHOLD)
     return {"found": len(contexts) > 0, "contexts": contexts}
 
 
@@ -119,30 +125,33 @@ def _reciprocal_rank_fusion(ranked_id_lists: list, k: int = RRF_K) -> list:
     return sorted(fused_scores, key=lambda doc_id: fused_scores[doc_id], reverse=True)
 
 
-def _dedupe_to_parents(child_ids: list, id_to_row: dict, parent_store: dict) -> list[dict]:
-    """融合排序后的child id列表里，很可能有多个子块指向同一个父块，
-    只保留每个父块第一次出现的位置(即融合排名最靠前的那次命中)。"""
+def _map_children_to_parents(reranked_children: list, parent_store: dict, threshold: float) -> list[dict]:
+    """精排后的子块按parent_id去重，映射回父块全文作为最终上下文。
+
+    子块分数就当作父块的相关性分数用——子块是父块的一部分，子块相关
+    说明父块里大概率有答案。多个子块命中同一个父块时只保留分数最高那次。
+    """
     seen_parent_ids = set()
-    candidates = []
-    for child_id in child_ids:
-        row = id_to_row.get(child_id)
-        if row is None:
+    contexts = []
+    for child in reranked_children:
+        if child["score"] < threshold:
             continue
-        parent_id = row["parent_id"]
+        parent_id = child["parent_id"]
         if parent_id in seen_parent_ids:
             continue
         seen_parent_ids.add(parent_id)
 
         parent_info = parent_store.get(parent_id)
         if parent_info:
-            candidates.append({
+            contexts.append({
                 "text": parent_info["text"],
                 "source_file": parent_info["source_file"],
                 "position": parent_info["position"],
                 "char_start": parent_info["char_start"],
                 "char_end": parent_info["char_end"],
+                "score": child["score"],
             })
-    return candidates
+    return contexts
 
 
 def _load_parent_store() -> dict:

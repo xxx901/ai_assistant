@@ -1,0 +1,184 @@
+{
+  "f34bf906-88f8-4e9d-ba82-0066a9fb7269": {
+    "text": "\nAttention Is All You Need\n\nAshish Vaswani\n Google Brain\n\nNoam Shazeer*\n Google Brain\n\nNiki Parmar*\n Google Research\n\nJakob Uszkoreit*\n Google Research\n\nLlion Jones*\n Google Research\n\nAidan N. Gomez*\n University of Toronto\n\n Łukasz Kaiser*\n Google Brain\n\nIllia Polosukhin*\n\n*同等贡献。 名单顺序随机。 Jakob提出用self-attention替换RNN并开始努力验证这个想法。\nAshish和Illia设计并实现第一个Transformer模型，并在这项工作中的各个方面起着至关重要的作\n用。 Noam提出缩放版的点积attention、multi-head attention和与参数无关的位置表示，并成为\n在几乎每个细节中都涉及的另外一个人。 Niki在我们最初的代码库和tensor2tensor中设计、实现、\n调优和评估了无数的模型变体。 Llion还尝试了新的模型变体，负责我们的初始代码库，以及高效的\n推断和可视化。 Lukasz和Aidan花费了无数的时间来设计tensor2tensor的各个部分，取代了我们之\n前的代码库，极大地改进了结果并大大加快了我们的研究。\n †Work performed while at Google Brain.\n ‡Work performed while at Google Research.\n\n第31届神经网络信息处理系统会议（NIPS 2017），美国加州长滩市。\n摘要\n主流序列转导模型基于复杂的循环神经网络或卷积神经网络，这些神经网络包含一个编码器\n和一个解",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 0,
+    "char_start": 0,
+    "char_end": 800
+  },
+  "9f549534-74fe-417c-8970-6b8a0e0e0f95": {
+    "text": "码器。 性能最好的模型还通过attention机制将编码器和解码器连接起来。 我们提\n出一种新的简单的网络架构Transformer，仅基于attention机制并完全避免循环和卷积。 对\n两个机器翻译任务的实验表明，这些模型在质量上更加优越、并行性更好并且需要的训练时\n间显著减少。 我们的模型在WMT 2014英语-德语翻译任务上达到28.4 BLEU，超过现有最\n佳结果（包括整合模型）2个BLEU。 在WMT 2014英语-法语翻译任务中，我们的模型建立\n了单模型新的最先进的BLEU分数41.8，它在8个GPU上训练了3.5天，这个时间只是目前文\n献中记载的最好的模型训练成本的一小部分。 通过在解析大量训练数据和有限训练数据的两\n种情况下将其应用到English constituency，我们表明Transformer可以很好地推广到其他\n任务。\n1 简介\n在序列建模和转换问题中，如语言建模和机器翻译[35, 2, 5]，循环神经网络特别是长短期记忆[13]和门控循\n环[7]神经网络，已经被确立为最先进的方法。 自那以后，许多努力一直在推动循环语言模型和编码器-解码\n器架构的界限[38, 24, 15]。\n循环模型通常是对输入和输出序列的符号位置进行因子计算。 通过在计算期间将位置与步骤对齐，它们根\n据前一步的隐藏状态ht-1和输入产生位置t的隐藏状态序列ht。这种固有的顺序特性阻碍样本训练的并行化，\n这在更长的序列长度上变得至关重要，因为有限的内存限制样本的批次大小。 最近的工作通过巧妙的因子\n分解[21]和条件计算[32]在计算效率方面取得重大进展，后者还同时提高了模型性能。 然而，顺序计算的基\n本约束依然存在。\n在各种任务中，attention机制已经成为序列建模和转导模型不可或缺的一部分，它可以建模依赖关系而不\n考虑其在输入或输出序列中的距离[2, 19]。 除",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 1,
+    "char_start": 800,
+    "char_end": 1600
+  },
+  "9d3c630c-c73a-4f53-9a59-515d35bc1c31": {
+    "text": "少数情况外[27]，这种attention机制都与循环网络一起使\n用。\n在这项工作中我们提出Transformer，这种模型架构避免循环并完全依赖于attention机制来绘制输入和输\n出之间的全局依赖关系。 Transformer允许进行更多的并行化，并且可以在八个P100 GPU上接受少至十二\n小时的训练后达到翻译质量的新的最佳结果。\n2 背景\n减少顺序计算的目标也构成扩展的神经网络GPU [16]、ByteNet [18]和ConvS2S [9]的基础，它们都使用卷\n积神经网络作为基本构建模块、并行计算所有输入和输出位置的隐藏表示。 在这些模型中，关联任意两个\n输入和输出位置的信号所需的操作次数会随着位置之间的距离而增加，ConvS2S是线性增加，而ByteNet\n是对数增加。 这使得学习远距离位置之间的依赖关系变得更加困难[12]。 在Transformer中，这中操作减\n少到固定的次数，尽管由于对用attention权重化的位置取平均降低了效果，但是我使用Multi-Head\nAttention进行抵消，具体描述见 3.2。\nSelf-attention，有时称为intra-attention，是一种attention机制，它关联单个序列的不同位置以计算序列\n的表示。 Self-attention已成功用于各种任务，包括阅读理解、摘要概括、文本蕴涵和学习与任务无关的句\n子表征[4, 27, 28, 22]。\n端到端的内存网络基于循环attention机制，而不是序列对齐的循环，并且已被证明在简单语言的问题回答\n和语言建模任务中表现良好[34]。\n然而，就我们所知，Transformer是第一个完全依靠self-attention来计算输入和输出表示而不使用序列对\n齐RNN或卷积的转导模型。 在下面的章节中，我们将描述Transformer、引出self-atten",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 2,
+    "char_start": 1600,
+    "char_end": 2400
+  },
+  "20e7d8ee-91b4-4127-9fc4-3fa365d89a9e": {
+    "text": "tion并讨论它相对\n[17, 18]和[9]几个模型的优势。\n3 模型架构\n\n图1： Transformer — 模型架构。\n大部分神经序列转导模型都有一个编码器-解码器结构[5, 2, 35]。 这里，编码器映射一个用符号表示的输入\n序列(x1,...,xn) 到一个连续的表示z = (z1,...,zn)。 根据z，解码器生成符号的一个输出序列(y1,...,ym) ，一次一\n个元素。 在每一步中，模型都是自回归的[10]，当生成下一个时，消耗先前生成的符号作为附加输入。\nTransformer遵循这种整体架构，编码器和解码器都使用self-attention堆叠和point-wise、完全连接的\n层，分别显示在图1的左边和右边。\n3.1 编码器和解码器堆栈\n编码器： 编码器由N = 6 个完全相同的层堆叠而成。 每一层都有两个子层。 第一层是一个multi-head\nself-attention机制，第二层是一个简单的、位置完全连接的前馈网络。 我们对每个子层再采用一个残差连\n接[11] ，接着进行层标准化[1]。 也就是说，每个子层的输出是LayerNorm(x + Sublayer(x))，其中\nSublayer(x) 是由子层本身实现的函数。 为了方便这些残差连接，模型中的所有子层以及嵌入层产生的输出\n维度都为dmodel = 512。\n解码器： 解码器同样由N = 6 个完全相同的层堆叠而成。 除了每个编码器层中的两个子层之外，解码器还\n插入第三个子层，该层对编码器堆栈的输出执行multi-head attention。 与编码器类似，我们在每个子层\n再采用残差连接，然后进行层标准化。 我们还修改解码器堆栈中的self-attention子层，以防止位置关注到\n后面的位置。 这种掩码结合将输出嵌入偏移一个位置，确保对位置的预测 i 只能依赖小于i 的已知输出",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 3,
+    "char_start": 2400,
+    "char_end": 3200
+  },
+  "aa0ea5e7-d3dc-4f5f-8962-96db96f6b6f6": {
+    "text": "。\n3.2 Attention\nAttention函数可以描述为将query和一组key-value对映射到输出，其中query、key、value和输出都是向\n量。 输出为value的加权和，其中分配给每个value的权重通过query与相应key的兼容函数来计算。\n3.2.1 缩放版的点积attention\n我们称我们特殊的attention为“缩放版的点积attention”（图 2）。 输入由query、dk 维的key和dv 维的\nvalue组成。 我们计算query和所有key的点积、用\n 相除，然后应用一个softmax函数以获得值的权\n重。\n在实践中，我们同时计算一组query的attention函数，并将它们组合成一个矩阵Q。 key和value也一起打\n包成矩阵 K 和 V 。 我们计算输出矩阵为：\n(1)\n两个最常用的attention函数是加法attention[2]和点积（乘法）attention。 除了缩放因子\n 之外，点积\nattention与我们的算法相同。 加法attention使用具有单个隐藏层的前馈网络计算兼容性函数。 虽然两者\n在理论上的复杂性相似，但在实践中点积attention的速度更快、更节省空间，因为它可以使用高度优化的\n矩阵乘法代码来实现。\n当dk的值比较小的时候，这两个机制的性能相差相近，当dk比较大时，加法attention比不带缩放的点积\nattention性能好[3]。 我们怀疑，对于很大的dk值，点积大幅度增长，将softmax函数推向具有极小梯度的\n区域4。 为了抵消这种影响，我们缩小点积\n 倍。\n3.2.2 Multi-Head Attention\n缩放版的点积Attention\n\nMulti-Head Attention\n\n图2： （左）缩放版的点积attention。 （右）Multi-Head Atten",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 4,
+    "char_start": 3200,
+    "char_end": 4000
+  },
+  "ea5d7043-ec16-46a5-9d7c-190eca172127": {
+    "text": "tion，由多个并行运行的\nattention层组成。\n我们发现将query、key和value分别用不同的、学到的线性映射h倍到dk、dk和dv维效果更好，而不是用d\nmodel维的query、key和value执行单个attention函数。 基于每个映射版本的query、key和value，我们\n并行执行attention函数，产生dv 维输出值。 将它们连接并再次映射，产生最终值，如图所示 2。\nMulti-head attention允许模型的不同表示子空间联合关注不同位置的信息。 如果只有一个attention\nhead，它的平均值会削弱这个信息。\nMultiHead(Q,K,V ) = Concat(head1,...,headh)WO\n其中 headi = Attention(QWi\nQ,KW i\nK,V W i\nV )\n其 中 ， 映 射 为 参 数 矩 阵Wi\nQ ∈ ℝdmodel×dk , Wi\nK ∈ ℝdmodel×dk , Wi\nV ∈ ℝdmodel×dv 及 W O ∈\nℝhdv×dmodel。\n在这项工作中，我们采用h = 8 个并行attention层或head。 对每个head，我们使用dk =dv =dmodel ⁄ h\n= 64。 由于每个head的大小减小，总的计算成本与具有全部维度的单个head attention相似。\n3.2.3 Attention在我们的模型中的应用\nTransformer使用以3种方式使用multi-head attention：\n在“编码器—解码器attention”层，query来自前一个解码器层，key和value来自编码器的输出。\n这允许解码器中的每个位置能关注到输入序列中的所有位置。 这模仿序列到序列模型中典型的编码器\n—解码器的attention机制，例如[38, 2, 9]。\n编码器包含s",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 5,
+    "char_start": 4000,
+    "char_end": 4800
+  },
+  "1175e807-5a90-45e1-9c1b-18737d474289": {
+    "text": "elf-attention层。 在self-attention层中，所有的key、value和query来自同一个地方，\n在这里是编码器中前一层的输出。 编码器中的每个位置都可以关注编码器上一层的所有位置。\n类似地，解码器中的self-attention层允许解码器中的每个位置都关注解码器中直到并包括该位置的所\n有位置。 我们需要防止解码器中的向左信息流来保持自回归属性。 通过屏蔽softmax的输入中所有不\n合法连接的值（设置为-∞），我们在缩放版的点积attention中实现。 见图 2.\n3.3 基于位置的前馈网络\n除了attention子层之外，我们的编码器和解码器中的每个层都包含一个完全连接的前馈网络，该前馈网络\n单独且相同地应用于每个位置。 它由两个线性变换组成，之间有一个ReLU激活。\n(2)\n尽管线性变换在不同位置上是相同的，但它们层与层之间使用不同的参数。 它的另一种描述方式是两个内\n核大小为1的卷积。 输入和输出的维度为dmodel = 512，内部层的维度为dff = 2048。\n3.4 嵌入和Softmax\n与其他序列转导模型类似，我们使用学习到的嵌入将输入词符和输出词符转换为维度为dmodel的向量。 我\n们还使用普通的线性变换和softmax函数将解码器输出转换为预测的下一个词符的概率。 在我们的模型\n中，两个嵌入层之间和pre-softmax线性变换共享相同的权重矩阵，类似于[30]。 在嵌入层中，我们将这些\n权重乘以\n 。\n3.5 位置编码\n由于我们的模型不包含循环和卷积，为了让模型利用序列的顺序，我们必须注入序列中关于词符相对或者绝\n对位置的一些信息。 为此，我们将“位置编码”添加到编码器和解码器堆栈底部的输入嵌入中。 位置编码\n和嵌入的维度dmodel相同，所以它们俩可以相加。 有多种位置编码可以选择，例如通过学习得到的位置编\n码和固定的",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 6,
+    "char_start": 4800,
+    "char_end": 5600
+  },
+  "5b2158fd-245f-4d2b-a02f-52c38fc29ba6": {
+    "text": "位置编码[9]。\n在这项工作中，我们使用不同频率的正弦和余弦函数：\nPE(pos,2i) = sin(pos ⁄ 100002i ⁄ dmodel)\nPE(pos,2i+1) = cos(pos ⁄ 100002i ⁄ dmodel)\n其中pos 是位置，i 是维度。 也就是说，位置编码的每个维度对应于一个正弦曲线。 这些波长形成一个几\n何级数，从2π 到10000 ⋅  2π。 我们选择这个函数是因为我们假设它允许模型很容易学习对相对位置的关\n注，因为对任意确定的偏移k, PEpos+k可以表示为PEpos的线性函数。\n我们还使用学习到的位置嵌入9进行了试验，发现这两个版本产生几乎相同的结果（参见表 3 行(E)）。 我\n们选择了正弦曲线，因为它可以允许模型推断比训练期间遇到的更长的序列。\n4 为什么选择Self-Attention\n本节，我们比较self-attention与循环层和卷积层的各个方面，它们通常用于映射变长的符号序列表示\n(x1,...,xn) 到另一个等长的序列(z1,...,zn)，其中xi,zi ∈ ℝd，例如一个典型的序列转导编码器或解码器中的隐\n藏层。 我们使用self-attention是考虑到解决三个问题。\n一个是每层计算的总复杂度。 另一个是可以并行的计算量，以所需的最小顺序操作的数量来衡量。\n第三个是网络中长距离依赖之间的路径长度。 学习长距离依赖性是许多序列转导任务中的关键挑战。 影响\n学习这种依赖性能力的一个关键因素是前向和后向信号必须在网络中传播的路径长度。 输入和输出序列中\n任意位置组合之间的这些路径越短，学习远距离依赖性就越容易[12]。 因此，我们还比较了由不同图层类\n型组成的网络中任意两个输入和输出位置之间的最大路径长度。\n表1： 不同图层类型的最大路径长度、每层复杂度和最少顺序操作数。 n 为序列的长度，d 为表\n示的维度",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 7,
+    "char_start": 5600,
+    "char_end": 6400
+  },
+  "7a49091b-59b1-4f3c-93a3-09ede09b2647": {
+    "text": "，k 为卷积的核的大小，r 为受限self-attention中邻域的大小。\n图层类型 每层复杂度 顺序 最大路径长度\n操作\nSelf-Attention O(n2 ⋅ d) O(1) O(1)\n循环 O(n ⋅ d2) O(n) O(n)\n卷积 O(k ⋅ n ⋅ d2) O(1) O(logk(n))\nSelf-Attention (受限) O(r ⋅ n ⋅ d) O(1) O(n ⁄ r )\n如表1所示，self-attention层将所有位置连接到恒定数量的顺序执行的操作，而循环层需要O(n) 顺序操\n作。 在计算复杂性方面，当序列长度n 小于表示维度d 时，self-attention层比循环层快，这是机器翻译中\n最先进的模型最常见情况，例如单词[38]表示法和字节对[31]表示法。 为了提高涉及很长序列的任务的计算\n性能，可以将self-attention限制在仅考虑大小为r 的邻域。 这会将最大路径长度增加到O(n ⁄ r)。 我们计划\n在未来的工作中进一步调查这种方法。\n核宽度为k < n的单层卷积不会连接每一对输入和输出的位置。 要这么做，在邻近核的情况下需要O(n⁄k) 个\n卷积层， 在扩展卷积的情况下需要O(logk(n)) 个层[18]，它们增加了网络中任意两个位置之间的最长路径\n的长度。 卷积层通常比循环层更昂贵，与因子k有关。然而，可分卷积[6]大幅减少复杂度到O(k ⋅n⋅d +\nn⋅d2)。 然而，即使k = n，一个可分卷积的复杂度等同于self-attention层和point-wise前向层的组合，即\n我们的模型采用的方法。\n间接的好处是self-attention可以产生更可解释的模型。 我们从我们的模型中研究attention的分布，并在\n附录中展示和讨论示例。 每个attention head不仅清楚地学习到执行不同的任务，许多",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 8,
+    "char_start": 6400,
+    "char_end": 7200
+  },
+  "a4e8289e-9b10-411e-905a-f8af0e3d4a68": {
+    "text": "似乎展现与句子的\n句法和语义结构的行为。\n5 训练\n本节介绍我们的模型训练方法。\n5.1 训练数据和批次\n我们在标准的WMT 2014英语-德语数据集上进行了训练，其中包含约450万个句子对。 这些句子使用字节\n对编码[3]进行编码，源语句和目标语句共享大约37000个词符的词汇表。 对于英语-法语翻译，我们使用大\n得多的WMT 2014英法数据集，它包含3600万个句子，并将词符分成32000个word-piece词汇表[38]。\n序列长度相近的句子一起进行批处理。 每个训练批次的句子对包含大约25000个源词符和25000个目标词\n符。\n5.2 硬件和时间\n我们在一台具有8个NVIDIA P100 GPU的机器上训练我们的模型。 使用本文描述的超参数的基础模型，每\n个训练步骤耗时约0.4秒。 我们的基础模型共训练了10万步或12小时。 For our big models,(described\non the bottom line of table 3), step time was 1.0 seconds. 大模型训练了30万步（3.5天）。\n5.3 优化\n我们使用Adam优化[20]，其中β1 = 0.9, β2 = 0.98 及ϵ = 10-9。 我们根据以下公式在训练过程中改变学习\n率：\n（3）\n这对应于在第一次warmup_steps 步骤中线性地增加学习速率，并且随后将其与步骤数的平方根成比例地\n减小。 我们使用warmup_steps = 4000。\n5.4 正则化\n训练期间我们采用三种正则化：\n残差丢弃 我们将丢弃[33]应用到每个子层的输出，在将它与子层的输入相加和规范化之前。 此外，在编码\n器和解码器堆栈中，我们将丢弃应用到嵌入和位置编码的和。 对于基本模型，我们使用Pdrop = 0.1丢弃\n率。\nLabel Smoothing 在训练过程中，我们",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 9,
+    "char_start": 7200,
+    "char_end": 8000
+  },
+  "65fecc21-4946-4e48-80d5-eeb034df400c": {
+    "text": "使用的label smoothing的值为ϵls = 0.1[36]。 这让模型不易理\n解，因为模型学得更加不确定，但提高了准确性和BLEU得分。\n6 结果\n6.1 机器翻译\n表2： Transformer在英语-德语和英语-法语newstest2014测试中获得的BLEU分数比以前的\n最新模型的分数更好，且训练成本只是它们的一小部分。\n模型 BLEU 训练成本（FLOPs）\ncmidrule\nEN-DE EN-FR EN-DE EN-FR\nByteNet [18] 23.75\nDeep-Att + PosUnk [39] 39.2 1.0 ⋅ 1020\nGNMT + RL [38] 24.6 39.92 2.3 ⋅ 1019 1.4 ⋅ 1020\nConvS2S [9] 25.16 40.46 9.6 ⋅ 1018 1.5 ⋅ 1020\nMoE [32] 26.03 40.56 2.0 ⋅ 1019 1.2 ⋅ 1020\nDeep-Att + PosUnk Ensemble [39] 40.4 8.0 ⋅ 1020\nGNMT + RL Ensemble [38] 26.30 41.16 1.8 ⋅ 1020 1.1 ⋅ 1021\nConvS2S Ensemble [9] 26.36 41.29 7.7 ⋅ 1019 1.2 ⋅ 1021\nTransformer (base model) 27.3 38.1 3.3 ⋅ 1018\nTransformer (big) 28.4 41.8 2.3 ⋅ 1019\n在WMT 2014英语-德语翻译任务中，大型transformer模型（表2中的Transformer (big)）比以前报道的\n最佳模型（包括整合模型）高出2.0 个BLEU以上，确立了一个全新的最高BLEU分数为28.4。 该模型的配置\n列在表3的底部。 训练在8 个",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 10,
+    "char_start": 8000,
+    "char_end": 8800
+  },
+  "85e12d7b-3417-4230-8339-af8a18d66f2f": {
+    "text": "P100 GPU上花费3.5 天。 即使我们的基础模型也超过了以前发布的所有模型\n和整合模型，且训练成本只是这些模型的一小部分。\n在WMT 2014英语-法语翻译任务中，我们的大型模型的BLEU得分为41.0，超过了之前发布的所有单一模\n型，训练成本低于先前最先进模型的1 ⁄ 4 。 英语-法语的Transformer (big) 模型使用丢弃率为Pdrop =\n0.1，而不是0.3。\n对于基础模型，我们使用的单个模型来自最后5个检查点的平均值，这些检查点每10分钟写一次。 对于大\n型模型，我们对最后20个检查点进行了平均。 我们使用beam search，beam大小为4 ，长度惩罚α = 0.6\n[38]。 这些超参数是在开发集上进行实验后选定的。 在推断时，我们设置最大输出长度为输入长度+50，\n但在可能时尽早终止[38]。\n表2总结了我们的结果，并将我们的翻译质量和训练成本与文献中的其他模型体系结构进行了比较。 我们通\n过将训练时间、所使用的GPU的数量以及每个GPU的持续单精度浮点能力的估计相乘来估计用于训练模型\n的浮点运算的数量5。\n6.2 模型的变体\n表3： Transformer架构的变体。 未列出的值与基本模型的值相同。 所有指标都基于英文到德文\n翻译开发集newstest2013。 Listed perplexities are per-wordpiece, according to our byte-\npair encoding, and should not be compared to per-word perplexities.\nNdmodel dff h dk dv Pdropϵls train PPL BLEU params\nsteps (dev) （DEV） ×106\nbase 6 512 2048 8 64 64 0.1 0.1 100K",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 11,
+    "char_start": 8800,
+    "char_end": 9600
+  },
+  "e6ddb426-985d-4e16-bd56-51b6acdd7c29": {
+    "text": " 4.92 25.8 65\n(A) 1 512 512 5.29 24.9\n4 128 128 5.00 25.5\n16 32 32 4.91 25.8\n32 16 16 5.01 25.4\n(B) 16 5.16 25.1 58\n32 5.01 25.4 60\n(C) 2 6.11 23.7 36\n4 5.19 25.3 50\n8 4.88 25.5 80\n256 32 32 5.75 24.5 28\n1024 128 128 4.66 26.0 168\n1024 5.12 25.4 53\n4096 4.75 26.2 90\n(D) 0.0 5.77 24.6\n0.2 4.95 25.5\n0.0 4.67 25.3\n0.2 5.47 25.7\n(E) 位置嵌入而不是正弦曲线 4.92 25.7\nbig 6 1024 4096 16 0.3 300K 4.33 26.4 213\n为了评估Transformer不同组件的重要性，我们以不同的方式改变我们的基础模型，测量开发集\nnewstest2013上英文-德文翻译的性能变化。 我们使用前一节所述的beam搜索，但没有平均检查点。 我\n们在表中列出这些结果 3.\n在表3的行（A）中，我们改变attention head的数量和attention key和value的维度，保持计算量不变，\n如3.2.2节所述。 虽然只有一个head attention比最佳设置差0.9 BLEU，但质量也随着head太多而下降。\n在表3行（B）中，我们观察到减小key的大小dk会有损模型质量。 这表明确定兼容性并不容易，并且比点\n积更复杂的兼容性函数可能更有用。 我们在行（C）和（D）中进一步观察到，如预期的那样，更大的模型\n更好，并且丢弃对避免过度拟合非常有帮助。 在行（E）中，我们用学习到的位置嵌入[9]来替换我们的正\n弦位置编码，并观察到",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 12,
+    "char_start": 9600,
+    "char_end": 10400
+  },
+  "cb846df0-2986-40ad-a8ab-425e714c4706": {
+    "text": "与基本模型几乎相同的结果。\n6.3 English Constituency Parsing\n表4： The Transformer generalizes well to English constituency parsing (Results are\non Section 23 of WSJ)\n分析器 训练 WSJ 23 F1\nVinyals & Kaiser el al. (2014) [37] WSJ only, discriminative 88.3\nPetrov et al. (2006) [29] WSJ only, discriminative 90.4\nZhu et al. (2013) [40] WSJ only, discriminative 90.4\nDyer et al. (2016) [8] WSJ only, discriminative 91.7\nTransformer (4 layers) WSJ only, discriminative 91.3\nZhu et al. (2013) [40] 半监督 91.3\nHuang＆Harper（2009）[14] 半监督 91.3\nMcClosky et al. (2006) [26] 半监督 92.1\nVinyals & Kaiser el al. (2014) [37] 半监督 92.1\nTransformer (4 layers) 半监督 92.7\nLuong et al. (2015) [23] 多任务 93.0\nDyer et al. (2016) [8] 生成的 93.3\nTo evaluate if the Transformer can generalize to other tasks we performed experiments on English\nconstituen",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 13,
+    "char_start": 10400,
+    "char_end": 11200
+  },
+  "3e774e77-006f-4672-acdf-5a953b35d35c": {
+    "text": "cy parsing. 这项任务提出特别的挑战：输出受到很强的结构性约束，并且比输入要长很多。 此\n外，RNN序列到序列模型还没有能够在小数据[37]中获得最好的结果。\n我 们 用dmodel = 1024 在 Penn Treebank[25] 的 Wall Street Journal （ WSJ ） 部 分 训 练 了 一 个 4 层\ntransformer，约40K个训练句子。 我们还使用更大的高置信度和BerkleyParser语料库，在半监督环境中\n对其进行了训练，大约17M个句子[37]。 我们使用了一个16K词符的词汇表作为WSJ唯一设置，和一个32K\n词符的词汇表用于半监督设置。\nWe performed only a small number of experiments to select the dropout, both attention and\nresidual (section 5.4), learning rates and beam size on the Section 22 development set, all other\nparameters remained unchanged from the English-to-German base translation model. 在推断过程\n中，我们将最大输出长度增加到输入长度+300。 对于WSJ和半监督设置，我们都使用beam大小21 和α =\n0.3 。\n表4中我们的结果表明，尽管缺少特定任务的调优，我们的模型表现得非常好，得到的结果比之前报告的除\n循环神经网络语法[8]之外的所有模型都好。\n与 RNN 序 列 到 序 列 模 型 [37] 相 比 ， 即 使 仅 在 WSJ 训 练 40K 句 子 组 训 练 时 ， Transformer 也 胜 过\nBerkeley",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 14,
+    "char_start": 11200,
+    "char_end": 12000
+  },
+  "8a885365-ca5b-470c-adf9-77148845a664": {
+    "text": "Parser [29]。\n7 结论\n在这项工作中，我们提出了Transformer，第一个完全基于关注的序列转导模型，用multi-headed self-\nattention取代了编码器-解码器架构中最常用的循环层。\n对于翻译任务，Transformer可以比基于循环或卷积层的体系结构训练更快。 在WMT 2014英语-德语和\nWMT 2014英语-法语翻译任务中，我们取得了最好的结果。 在前面的任务中，我们最好的模型甚至胜过以\n前报道过的所有整合模型。\n我们对基于attention的模型的未来感到兴奋，并计划将它们应用于其他任务。 我们计划将Transformer扩\n展到除文本之外的涉及输入和输出模式的问题，并调查局部的、受限attention机制以有效处理大型输入和\n输出，如图像、音频和视频。 让生成具有更少的顺序性是我们的另一个研究目标。\n我们用于训练和评估模型的代码可以在https://github.com/tensorflow/tensor2tensor上找到。\n致谢 我们感谢Nal Kalchbrenner和Stephan Gouws富有成效的评论、更正和灵感。\n4为了说明点积为什么变大，假设q和k的组成是均值为0和方差为1的独立随机变量。 那么它们的点积q ⋅  k = ∑ i=1dk qi\nki 的均值为0，方差为dk。\n5对于K80、K40、M40和P100，我们分别使用2.8、3.7、6.0和9.5 TFLOPS的值。\n参考\n[1] Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E Hinton. Layer normalization. arXiv preprint\narXiv:1607.06450, 2016.\n[2] Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 15,
+    "char_start": 12000,
+    "char_end": 12800
+  },
+  "5bc57a91-a4b8-499d-85a1-d24e4585c268": {
+    "text": " Bengio. Neural machine translation by jointly\nlearning to align and translate. CoRR, abs/1409.0473, 2014.\n[3] Denny Britz, Anna Goldie, Minh-Thang Luong, and Quoc V. Le. Massive exploration of neural\nmachine translation architectures. CoRR, abs/1703.03906, 2017.\n[4] Jianpeng Cheng, Li Dong, and Mirella Lapata. Long short-term memory-networks for machine\nreading. arXiv preprint arXiv:1601.06733, 2016.\n[5] Kyunghyun Cho, Bart van Merrienboer, Caglar Gulcehre, Fethi Bougares, Holger Schwenk, and\nYoshua Bengio. Learning phrase representations using rnn encoder-decoder for statistical\nmachine translation. CoRR, abs/1406.1078, 2014.\n[6] Francois Chollet. Xception: Deep learning with depthwise separable convolutions. arXiv\npreprint arXiv:1610.02357, 2016.\n[7] Junyoung Chung, Çaglar Gülçehre, Kyu",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 16,
+    "char_start": 12800,
+    "char_end": 13600
+  },
+  "47b2eca8-f587-4925-b286-8396a313b0b9": {
+    "text": "nghyun Cho, and Yoshua Bengio. Empirical evaluation\nof gated recurrent neural networks on sequence modeling. CoRR, abs/1412.3555, 2014.\n[8] Chris Dyer, Adhiguna Kuncoro, Miguel Ballesteros, and Noah A. Smith. Recurrent neural\nnetwork grammars. In Proc. of NAACL, 2016.\n[9] Jonas Gehring, Michael Auli, David Grangier, Denis Yarats, and Yann N. Dauphin. Convolutional\nsequence to sequence learning. arXiv preprint arXiv:1705.03122v2, 2017.\n[10] Alex Graves. Generating sequences with recurrent neural networks. arXiv preprint\narXiv:1308.0850, 2013.\n[11] Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Deep residual learning for image\nrecognition. In Proceedings of the IEEE Conference on Computer Vision and Pattern\nRecognition, pages 770–778, 2016.\n[12] Sepp Hochreiter, Yoshua Bengio, Paolo ",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 17,
+    "char_start": 13600,
+    "char_end": 14400
+  },
+  "e01bfcd2-a9d5-460f-a24b-bd34770235f8": {
+    "text": "Frasconi, and Jürgen Schmidhuber. Gradient flow in\nrecurrent nets: the difficulty of learning long-term dependencies, 2001.\n[13] Sepp Hochreiter and Jürgen Schmidhuber. Long short-term memory. Neural computation,\n9(8):1735–1780, 1997.\n[14] Zhongqiang Huang and Mary Harper. Self-training PCFG grammars with latent annotations\nacross languages. In Proceedings of the 2009 Conference on Empirical Methods in Natural\nLanguage Processing, pages 832–841. ACL, August 2009.\n[15] Rafal Jozefowicz, Oriol Vinyals, Mike Schuster, Noam Shazeer, and Yonghui Wu. Exploring the\nlimits of language modeling. arXiv preprint arXiv:1602.02410, 2016.\n[16] Łukasz Kaiser and Samy Bengio. Can active memory replace attention? In Advances in Neural\nInformation Processing Systems, (NIPS), 2016.\n[17] Łukasz Kaiser and Ily",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 18,
+    "char_start": 14400,
+    "char_end": 15200
+  },
+  "ff1924aa-47e0-4533-8077-6ed86b65f9bb": {
+    "text": "a Sutskever. Neural GPUs learn algorithms. In International Conference\non Learning Representations (ICLR), 2016.\n[18] Nal Kalchbrenner, Lasse Espeholt, Karen Simonyan, Aaron van den Oord, Alex Graves, and\nKoray Kavukcuoglu. Neural machine translation in linear time. arXiv preprint\narXiv:1610.10099v2, 2017.\n[19] Yoon Kim, Carl Denton, Luong Hoang, and Alexander M. Rush. Structured attention networks.\nIn International Conference on Learning Representations, 2017.\n[20] Diederik Kingma and Jimmy Ba. Adam: A method for stochastic optimization. In ICLR, 2015.\n[21] Oleksii Kuchaiev and Boris Ginsburg. Factorization tricks for LSTM networks. arXiv preprint\narXiv:1703.10722, 2017.\n[22] Zhouhan Lin, Minwei Feng, Cicero Nogueira dos Santos, Mo Yu, Bing Xiang, Bowen Zhou, and\nYoshua Bengio. A structur",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 19,
+    "char_start": 15200,
+    "char_end": 16000
+  },
+  "fe1fd5b6-1f74-4c37-a565-3efaca405724": {
+    "text": "ed self-attentive sentence embedding. arXiv preprint\narXiv:1703.03130, 2017.\n[23] Minh-Thang Luong, Quoc V. Le, Ilya Sutskever, Oriol Vinyals, and Lukasz Kaiser. Multi-task\nsequence to sequence learning. arXiv preprint arXiv:1511.06114, 2015.\n[24] Minh-Thang Luong, Hieu Pham, and Christopher D Manning. Effective approaches to\nattention-based neural machine translation. arXiv preprint arXiv:1508.04025, 2015.\n[25] Mitchell P Marcus, Mary Ann Marcinkiewicz, and Beatrice Santorini. Building a large\nannotated corpus of english: The penn treebank. Computational linguistics, 19(2):313–330,\n1993.\n[26] David McClosky, Eugene Charniak, and Mark Johnson. Effective self-training for parsing. In\nProceedings of the Human Language Technology Conference of the NAACL, Main\nConference, pages 152–159. ACL, J",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 20,
+    "char_start": 16000,
+    "char_end": 16800
+  },
+  "fd9f1e7f-353b-4339-8a07-369cb0c8765d": {
+    "text": "une 2006.\n[27] Ankur Parikh, Oscar Täckström, Dipanjan Das, and Jakob Uszkoreit. A decomposable\nattention model. In Empirical Methods in Natural Language Processing, 2016.\n[28] Romain Paulus, Caiming Xiong, and Richard Socher. A deep reinforced model for abstractive\nsummarization. arXiv preprint arXiv:1705.04304, 2017.\n[29] Slav Petrov, Leon Barrett, Romain Thibaux, and Dan Klein. Learning accurate, compact, and\ninterpretable tree annotation. In Proceedings of the 21st International Conference on\nComputational Linguistics and 44th Annual Meeting of the ACL, pages 433–440. ACL, July\n2006.\n[30] Ofir Press and Lior Wolf. Using the output embedding to improve language models. arXiv\npreprint arXiv:1608.05859, 2016.\n[31] Rico Sennrich, Barry Haddow, and Alexandra Birch. Neural machine translatio",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 21,
+    "char_start": 16800,
+    "char_end": 17600
+  },
+  "5d6c7148-90c5-40a3-83f9-8908b69bef66": {
+    "text": "n of rare words\nwith subword units. arXiv preprint arXiv:1508.07909, 2015.\n[32] Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton,\nand Jeff Dean. Outrageously large neural networks: The sparsely-gated mixture-of-experts\nlayer. arXiv preprint arXiv:1701.06538, 2017.\n[33] Nitish Srivastava, Geoffrey E Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan\nSalakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. Journal of\nMachine Learning Research, 15(1):1929–1958, 2014.\n[34] Sainbayar Sukhbaatar, Arthur Szlam, Jason Weston, and Rob Fergus. End-to-end memory\nnetworks. In C. Cortes, N. D. Lawrence, D. D. Lee, M. Sugiyama, and R. Garnett, editors,\nAdvances in Neural Information Processing Systems 28, pages 2440–2448. Curran Associate",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 22,
+    "char_start": 17600,
+    "char_end": 18400
+  },
+  "84f7bb44-3720-4f76-8388-0229c829e78b": {
+    "text": "s,\nInc., 2015.\n[35] Ilya Sutskever, Oriol Vinyals, and Quoc VV Le. Sequence to sequence learning with neural\nnetworks. In Advances in Neural Information Processing Systems, pages 3104–3112, 2014.\n[36] Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens, and Zbigniew Wojna.\nRethinking the inception architecture for computer vision. CoRR, abs/1512.00567, 2015.\n[37] Vinyals & Kaiser, Koo, Petrov, Sutskever, and Hinton. Grammar as a foreign language. In\nAdvances in Neural Information Processing Systems, 2015.\n[38] Yonghui Wu, Mike Schuster, Zhifeng Chen, Quoc V Le, Mohammad Norouzi, Wolfgang\nMacherey, Maxim Krikun, Yuan Cao, Qin Gao, Klaus Macherey, et al. Google’s neural\nmachine translation system: Bridging the gap between human and machine translation. arXiv\npreprint arXiv:16",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 23,
+    "char_start": 18400,
+    "char_end": 19200
+  },
+  "a37eda90-8065-40ff-9f7f-f711d063c199": {
+    "text": "09.08144, 2016.\n[39] Jie Zhou, Ying Cao, Xuguang Wang, Peng Li, and Wei Xu. Deep recurrent models with fast-\nforward connections for neural machine translation. CoRR, abs/1606.04199, 2016.\n[40] Muhua Zhu, Yue Zhang, Wenliang Chen, Min Zhang, and Jingbo Zhu. Fast and accurate shift-\nreduce constituent parsing. In Proceedings of the 51st Annual Meeting of the ACL (Volume 1:\nLong Papers), pages 434–443. ACL, August 2013.\nAttention的可视化\n图3： Attention机制的一个示例， 5/6层的编码器self-attention中的长距离依赖的attention。\n很 多 attention head 都 关 注 与 动 词 'making' 的 远 距 离 依 赖 关 系 ， 正 好 补 全 'making...more\ndifficult'这个短语。 这里只显示“making”一词的attention。 不同的颜色代表不同的head。\nBest viewed in color.\n\n 图4： 两个attention head，也在5/6层，显然有逆向照应（下文的词返指或代替上文的词）。 顶\n部：head 5的完整的attention。 底部：仅将attention heads 5和6中单词'its'的attention分离出\n来。 请注意，这个词的att",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 24,
+    "char_start": 19200,
+    "char_end": 20000
+  },
+  "7130f700-b206-4c8c-936f-785f463bec0b": {
+    "text": "ention非常明确。\n图5： 很多attention head表现出的行为似乎与句子的结构有关。 我们给出了两个这样的例子，\n来自编码器5/6层self-attention的两个不同的head。 Head清楚地学会了执行不同的任务。\n译者：yiyibooks\n来源：Attention Is All You Need 中文翻译",
+    "source_file": "eval\\Attention Is All You Need 中文翻译.pdf",
+    "position": 25,
+    "char_start": 20000,
+    "char_end": 20164
+  }
+}

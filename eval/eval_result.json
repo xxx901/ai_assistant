@@ -1,0 +1,462 @@
+{
+  "accuracy_overall": 0.76,
+  "accuracy_judged": 0.76,
+  "correct": 38,
+  "wrong": 12,
+  "judge_failed": 0,
+  "error": 0,
+  "found_hits": 42,
+  "total": 50,
+  "rows": [
+    {
+      "num": 1,
+      "question": "这篇论文的作者来自哪个机构？",
+      "reference": "Ashish Vaswani 等 8 位作者全部来自 Google Brain 和 Google Research。",
+      "retrieval_query": "这篇论文的作者来自哪个机构？",
+      "generated": "要回答这个问题，我需要知道具体是哪篇论文。请您提供论文的相关信息，比如标题、作者列表或发表的期刊/会议名称等，我将根据提供的信息帮助您查找作者所在的机构。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 2,
+      "question": "论文提出的模型叫什么名字？",
+      "reference": "Transformer。",
+      "retrieval_query": "论文提出的模型叫什么名字？",
+      "generated": "为了准确回答您的问题，我需要知道您具体指的是哪篇论文中的模型。请您提供更多的信息，比如论文的名称、作者、发表的年份或者任何可以帮助识别的细节。这样我才能给出正确的答案。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 3,
+      "question": "论文的核心主张是什么？",
+      "reference": "仅使用注意力机制（attention），完全摒弃循环和卷积，即可构建高效的序列转换模型。",
+      "retrieval_query": "论文的核心主张是什么？",
+      "generated": "要准确回答“论文的核心主张是什么”，我需要了解具体的论文内容或主题。不同类型的论文（如社会科学、自然科学、人文科学等）可能有不同的核心主张表达方式，但通常论文的核心主张是指作者试图证明或支持的主要观点或理论。它可能明确地在论文的引言或结论部分提出，也可能贯穿全文，通过论据和论证逐步显现。如果有具体的论文主题或摘要，可以提供更多信息，我将更好地帮助您识别论文的核心主张。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 4,
+      "question": "论文发表于哪一年、哪个会议？",
+      "reference": "2017 年，Advances in Neural Information Processing Systems（NIPS 2017）。",
+      "retrieval_query": "论文发表于哪一年、哪个会议？",
+      "generated": "论文《Attention Is All You Need》发表于2017年的第31届神经网络信息处理系统会议（NIPS 2017），地点在美国加州长滩市。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 5,
+      "question": "论文解决的主要任务是什么？",
+      "reference": "机器翻译，具体是 WMT 2014 英德和英法翻译任务。",
+      "retrieval_query": "论文解决的主要任务是什么？",
+      "generated": "要准确回答您的问题，我需要知道具体是哪一篇论文。每篇论文解决的任务或问题都是不同的，比如有的论文可能专注于解决特定的数学问题、优化算法、医学诊断技术，或是其他领域的某个特定问题。请您提供具体的论文名称或相关信息，这样我才能给出更准确的答案。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 6,
+      "question": "论文摘要中提到的\"现有主流序列转换模型\"基于什么架构？",
+      "reference": "基于复杂的循环神经网络（RNN）或卷积神经网络（CNN），通常包含编码器和解码器。",
+      "retrieval_query": "论文摘要中提到的\"现有主流序列转换模型\"基于什么架构？",
+      "generated": "论文摘要中提到的\"现有主流序列转换模型\"基于复杂的循环神经网络或卷积神经网络，这些神经网络包含一个编码器和一个解码器。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 7,
+      "question": "论文认为循环模型的根本局限是什么？",
+      "reference": "循环模型的顺序计算特性排除了训练样本内部的并行化，在序列较长时成为关键瓶颈。",
+      "retrieval_query": "论文认为循环模型的根本局限是什么？",
+      "generated": "论文认为循环模型的根本局限是顺序计算的基本约束，这阻碍了样本训练的并行化，尤其是在更长的序列长度上变得至关重要，因为有限的内存限制了样本的批次大小。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 8,
+      "question": "论文提出的模型在训练上有什么优势？",
+      "reference": "允许显著更多的并行化，在 8 块 P100 GPU 上训练 12 小时即可达到翻译质量的新高度。",
+      "retrieval_query": "论文提出的模型在训练上有什么优势？",
+      "generated": "论文提出的模型在训练上具有一项优势，即在小数据集（如Penn Treebank的Wall Street Journal部分，大约40K个训练句子）上，Transformer模型的表现优于循环神经网络序列到序列模型。这表明Transformer模型在小数据集训练时具有较好的泛化能力和表现。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 9,
+      "question": "Transformer 的整体架构由哪两部分组成？",
+      "reference": "编码器（encoder）和解码器（decoder）。",
+      "retrieval_query": "Transformer 的整体架构由哪两部分组成？",
+      "generated": "Transformer 的整体架构由编码器和解码器两部分组成。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 10,
+      "question": "编码器和解码器各由多少层相同的层堆叠而成？",
+      "reference": "各 6 层（N=6）。",
+      "retrieval_query": "编码器和解码器各由多少层相同的层堆叠而成？",
+      "generated": "编码器由6个完全相同的层堆叠而成，解码器同样由6个完全相同的层堆叠而成。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 11,
+      "question": "编码器每一层包含哪两个子层？",
+      "reference": "多头自注意力机制（multi-head self-attention）和位置前馈网络（position-wise fully connected feed-forward network）。",
+      "retrieval_query": "编码器每一层包含哪两个子层？",
+      "generated": "编码器每一层包含两个子层：一个是multi-head self-attention机制，另一个是一个简单的位置完全连接的前馈网络。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 12,
+      "question": "解码器每一层比编码器多出哪个子层？",
+      "reference": "在自注意力和前馈网络之间多了一个对编码器输出执行多头注意力的子层。",
+      "retrieval_query": "解码器每一层比编码器多出哪个子层？",
+      "generated": "解码器每一层比编码器多出一个子层，即用于对编码器堆栈输出执行multi-head attention的子层。编码器的每层包含一个multi-head self-attention子层和一个简单的、位置完全连接的前馈网络子层。而解码器在相同的两个子层基础上，额外增加了一个用于处理编码器输出的multi-head attention子层。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 13,
+      "question": "每个子层周围采用了什么结构？",
+      "reference": "残差连接（residual connection），后接层归一化（layer normalization）。",
+      "retrieval_query": "每个子层周围采用了什么结构？",
+      "generated": "每个子层周围采用了残差连接和层规范化（LayerNorm）的结构。具体来说，在每个子层之后，Transformer模型都会加上残差连接（x + Sublayer(x)），其中Sublayer(x)是由子层本身实现的函数。然后对这个结果进行层规范化处理。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 14,
+      "question": "子层输出的计算公式是什么？",
+      "reference": "LayerNorm(x + Sublayer(x))。",
+      "retrieval_query": "子层输出的计算公式是什么？",
+      "generated": "每个子层的输出是通过以下公式计算的：LayerNorm(x + Sublayer(x))，其中Sublayer(x)是由子层本身实现的函数。具体来说，就是先对子层的输入进行变换，然后加上子层的输出，最后通过层规范化（LayerNorm）进行归一化处理。这里，x代表子层的输入，Sublayer(x)代表子层本身的变换，LayerNorm是对x + Sublayer(x)进行归一化处理。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 15,
+      "question": "为了便于残差连接，模型所有子层和嵌入层的输出维度是多少？",
+      "reference": "d_model = 512。",
+      "retrieval_query": "为了便于残差连接，模型所有子层和嵌入层的输出维度是多少？",
+      "generated": "为了便于残差连接，模型所有子层以及嵌入层产生的输出维度为512。具体描述如下：\n\n“为了方便这些残差连接，模型中的所有子层以及嵌入层产生的输出维度都为dmodel = 512。”",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 16,
+      "question": "位置前馈网络由几层线性变换组成，中间激活函数是什么？",
+      "reference": "两层线性变换，中间使用 ReLU 激活。",
+      "retrieval_query": "位置前馈网络由几层线性变换组成，中间激活函数是什么？",
+      "generated": "位置前馈网络由两个线性变换组成，之间有一个ReLU激活函数。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 17,
+      "question": "前馈网络的输入和输出维度是多少，内层维度是多少？",
+      "reference": "输入和输出维度为 512，内层维度 d_ff = 2048。",
+      "retrieval_query": "前馈网络的输入和输出维度是多少，内层维度是多少？",
+      "generated": "根据参考资料中的描述，编码器和解码器中的每个层都包含一个完全连接的前馈网络，该前馈网络单独且相同地应用于每个位置。其输入和输出的维度为dmodel = 512，内部层的维度为dff = 2048。所以，前馈网络的输入和输出维度是512，内层维度是2048。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 18,
+      "question": "模型如何注入序列的顺序信息？",
+      "reference": "在编码器和解码器的输入嵌入上加上位置编码（positional encoding）。",
+      "retrieval_query": "模型如何注入序列的顺序信息？",
+      "generated": "为了注入序列的顺序信息，模型在编码器和解码器堆栈底部的输入嵌入中添加了“位置编码”。位置编码与嵌入的维度dmodel相同，所以它们可以相加。位置编码可以是学习得到的或固定的，不同位置有不同的编码，以便模型能够利用序列中的顺序信息。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 19,
+      "question": "位置编码使用什么函数？",
+      "reference": "正弦和余弦函数。",
+      "retrieval_query": "位置编码使用什么函数？",
+      "generated": "位置编码使用正弦和余弦函数。具体公式为：\n\\[ PE(pos,2i) = \\sin\\left(\\frac{pos}{10000^{2i/d_{model}}}\\right) \\]\n\\[ PE(pos,2i+1) = \\cos\\left(\\frac{pos}{10000^{2i/d_{model}}}\\right) \\]\n其中 \\( pos \\) 是位置，\\( i \\) 是维度。位置编码的每个维度对应于一个正弦曲线，波长形成一个几何级数，从 \\( 2\\pi \\) 到 \\( 10000 \\cdot 2\\pi \\)。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 20,
+      "question": "为什么选择正弦余弦位置编码？",
+      "reference": "它允许模型推断出比训练期间遇到的序列更长的序列长度，且固定波长便于学习相对位置。",
+      "retrieval_query": "为什么选择正弦余弦位置编码？",
+      "generated": "选择正弦余弦位置编码的原因在于它允许模型更容易地学习相对位置的注意力，因为对任意确定的偏移k, PEpos+k可以表示为PEpos的线性函数。此外，通过使用正弦和余弦函数作为不同频率的波，可以构建不同长度序列的位置编码，这使得模型能够推断出比训练期间遇到的更长的序列。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 21,
+      "question": "论文将注意力函数定义为什么？",
+      "reference": "将查询（query）和一组键值对（key-value pair）映射为输出的函数。",
+      "retrieval_query": "论文将注意力函数定义为什么？",
+      "generated": "论文将注意力函数定义为将query和一组key-value对映射到输出的函数，其中query、key、value和输出都是向量。输出是value的加权和，权重是通过query与相应key的兼容函数计算出来的。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 22,
+      "question": "注意力的输出是如何计算的？",
+      "reference": "输出是值的加权和，权重由查询与对应键的兼容性函数计算得出。",
+      "retrieval_query": "注意力的输出是如何计算的？",
+      "generated": "注意力机制的输出是values的加权和，具体来说是通过以下步骤计算的：\n\n1. 计算query和所有key的点积，然后除以一个缩放因子（通常是key维度的平方根）。\n2. 对上述结果应用softmax函数，以获得为每个value分配的权重。\n3. 将上述获得的权重与对应的value相乘，并求和，即得到最终的注意力输出。\n\n对于多头注意力机制（Multi-Head Attention），则是对不同头（head）进行上述操作，然后将结果合并，具体如下：\n\n1. 使用不同的线性变换分别对query、key和value进行变换，得到dk、dk和dv维度的版本。\n2. 对每个head，分别执行上述注意力机制的过程。\n3. 将各个head的结果连接起来，通过一个最终的线性变换（权重矩阵WO）进行组合，得到最终的多头注意力输出。\n\n这个过程能够使模型在多个并行的注意力子空间中同时关注不同的信息，从而提升模型的表达能力。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 23,
+      "question": "论文提出的注意力机制叫什么？",
+      "reference": "缩放点积注意力（Scaled Dot-Product Attention）。",
+      "retrieval_query": "论文提出的注意力机制叫什么？",
+      "generated": "论文中提出的注意力机制称为self-attention，有时也称为intra-attention。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 24,
+      "question": "缩放点积注意力的计算公式是什么？",
+      "reference": "Attention(Q, K, V) = softmax(QK^T / √d_k) V。",
+      "retrieval_query": "缩放点积注意力的计算公式是什么？",
+      "generated": "根据资料，缩放点积注意力的计算公式为：\n\n首先，计算query和所有key的点积，然后除以√dk，最后通过softmax函数获得值的权重。\n\n具体来说，给定输入的query、key和value，以及它们的维度dk和dv，缩放点积注意力的计算可以表示为：\n\n1. 计算点积：`QK^T`，其中Q是query的矩阵，K是key的矩阵。\n2. 对点积结果进行缩放：`QK^T / √dk`。\n3. 应用softmax函数：`softmax(QK^T / √dk)`，得到注意力权重。\n4. 将注意力权重与value相乘，得到输出：`softmax(QK^T / √dk) * V`，其中V是value的矩阵。\n\n综合上述步骤，缩放点积注意力的计算公式可以表示为：\n\n\\[ \\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right) V \\]\n\n其中，`d_k` 是 key 向量的维度。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 25,
+      "question": "为什么要除以 √d_k？",
+      "reference": "当 d_k 较大时，点积结果会变得很大，导致 softmax 梯度极小，除以 √d_k 可以抵消这种影响。",
+      "retrieval_query": "为什么要除以 √d_k？",
+      "generated": "在许多机器学习和深度学习模型中，尤其是那些涉及到多层感知器（MLP）、卷积神经网络（CNN）等模型的网络设计中，除以 \\(\\sqrt{d_k}\\) 是一个常见的做法，这里 \\(d_k\\) 通常表示第 \\(k\\) 层的特征数量或神经元数量。这样做主要有几个原因：\n\n1. **初始化权重**：在深度学习中，权重的初始化是非常重要的，不恰当的权重初始化可能导致模型的训练不稳定或者收敛速度变慢。除以 \\(\\sqrt{d_k}\\) 可以帮助控制权重的尺度，确保每一层的输入和输出具有相同的尺度，这有助于保持激活函数的均值和方差在训练过程中的一致性，进而使得网络的训练更加稳定。\n\n2. **梯度消失或爆炸问题**：在网络的深层中，如果权重初始化不当，可能会导致梯度在反向传播时过快衰减（梯度消失）或过大（梯度爆炸），影响模型的训练效果。通过除以 \\(\\sqrt{d_k}\\)，可以减缓这种梯度的变化，有助于缓解梯度消失或爆炸的问题。\n\n3. **平衡各层的贡献**：网络中不同层的特征数量可能有很大差异，通过除以 \\(\\sqrt{d_k}\\) 可以在一定程度上平衡各层的贡献，使得每一层在网络训练中都能发挥其应有的作用，从而提高模型的整体性能。\n\n4. **保持激活函数的性质**：很多激活函数（如ReLU、Leaky ReLU等）在理论上要求输入的方差保持稳定，这样可以更好地利用这些激活函数的特性，提高模型的表现。通过除以 \\(\\sqrt{d_k}\\)，可以保持输入的方差接近稳定，从而确保激活函数能更好地发挥作用。\n\n综上所述，除以 \\(\\sqrt{d_k}\\) 是为了在网络设计中确保权重的适当初始化，帮助平衡各层的贡献，缓解梯度问题，以及保持激活函数的性质，从而提升模型的训练质量和最终性能。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 26,
+      "question": "论文提到的两种最常用注意力函数是什么？",
+      "reference": "加性注意力（additive attention）和点积注意力（dot-product attention）。",
+      "retrieval_query": "论文提到的两种最常用注意力函数是什么？",
+      "generated": "根据论文内容，两种最常用的注意力函数是加法注意力[2]和点积（乘法）注意力。这两者之间的主要区别在于加法注意力使用带有单个隐藏层的前馈网络来计算兼容性函数，而点积注意力则直接计算query和key之间的点积并进行缩放。尽管在理论上的复杂性相似，但点积注意力在实践中更快且占用空间更少，因为它可以利用高度优化的矩阵乘法代码实现。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 27,
+      "question": "为什么论文选择点积注意力而非加性注意力？",
+      "reference": "点积注意力在实践中更快、更节省空间，因为它可以使用高度优化的矩阵乘法代码。",
+      "retrieval_query": "为什么论文选择点积注意力而非加性注意力？",
+      "generated": "论文选择点积注意力而非加性注意力，主要是因为点积注意力在实践中的速度更快、占用空间更少。尽管在理论上两者复杂度相似，但点积注意力可以通过高度优化的矩阵乘法代码来实现，因此在实际应用中表现更优。此外，当键的维度（dk）较小时，两者性能相差不大，但当dk较大时，点积注意力可能会导致softmax函数进入具有极小梯度的区域，从而影响性能。为缓解这一问题，论文通过缩小点积的方式对点积注意力进行了调整。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 28,
+      "question": "什么是多头注意力？",
+      "reference": "将查询、键、值分别用不同的学习线性投影映射 h 次，并行执行注意力，再将结果拼接并投影。",
+      "retrieval_query": "什么是多头注意力？",
+      "generated": "多头注意力（Multi-Head Attention）是一种注意力机制，它可以允许模型的不同表示子空间联合关注不同位置的信息。在传统的单头注意力中，如果只使用一个注意力头，其平均值会削弱输入序列中不同位置之间的远距离依赖关系。通过使用多个并行的注意力头，每个头可以关注输入的不同方面或位置，从而捕捉更丰富的信息。\n\n具体来说，多头注意力通过以下方式实现：\n1. 将query、key和value分别通过不同的、学到的线性映射变换到不同的维度（dk、dk和dv）。\n2. 对每个映射版本的query、key和value，执行并行的注意力函数，产生多个注意力头的结果。\n3. 将这些注意力头的结果连接起来，并通过一个最终的线性变换层（WO）进行组合，得到最终的输出。\n\n公式表示为：\n\\[ \\text{MultiHead}(Q, K, V) = \\text{Concat}(head_1, ..., head_h)W^O \\]\n其中，\n\\[ head_i = \\text{Attention}(QW^Q_i, KW^K_i, VW^V_i) \\]\n这里的映射参数矩阵为：\n\\[ W^Q_i \\in \\mathbb{R}^{d_{\\text{model}} \\times d_k}, W^K_i \\in \\mathbb{R}^{d_{\\text{model}} \\times d_k}, W^V_i \\in \\mathbb{R}^{d_{\\text{model}} \\times d_v} \\]\n以及输出线性变换矩阵 \\( W^O \\in \\mathbb{R}^{hd_v \\times d_{\\text{model}}} \\)。\n\n在这个模型中，我们采用8个并行的注意力层或head，对于每个head，使用 \\( d_k = d_v = d_{\\text{model}} / h = 64 \\)。由于每个head的大小减小，总的计算成本与具有全部维度的单个head attention相似。\n\n通过使用多头注意力，Transformer能够更好地捕捉输入序列中的长距离依赖关系，并且模型的不同表示子空间可以联合关注不同位置的信息。这使得模型能够更有效地处理复杂的序列数据。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 29,
+      "question": "论文中多头注意力的头数 h 是多少？",
+      "reference": "h = 8。",
+      "retrieval_query": "论文中多头注意力的头数 h 是多少？",
+      "generated": "在论文中，多头注意力机制采用的头数 \\( h \\) 为 8 个。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 30,
+      "question": "每个头的维度 d_k 和 d_v 是多少？",
+      "reference": "d_k = d_v = d_model / h = 64。",
+      "retrieval_query": "每个头的维度 d_k 和 d_v 是多少？",
+      "generated": "根据资料中的描述，在使用Multi-Head Attention时，对于每个head，我们使用\\(d_k = d_v = d_{\\text{model}} / h = 64\\)。这里\\(d_{\\text{model}}\\)是模型的维度，\\(h\\)是head的数量，对于这个例子中，\\(h = 8\\)，因此每个head的\\(d_k\\)和\\(d_v\\)都是64。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 31,
+      "question": "多头注意力相比单头注意力的优势是什么？",
+      "reference": "允许模型在不同表示子空间的不同位置关注信息。",
+      "retrieval_query": "多头注意力相比单头注意力的优势是什么？",
+      "generated": "多头注意力相比单头注意力的主要优势在于它可以允许模型的不同表示子空间联合关注不同位置的信息。具体来说，如果只有一个attention头，它的平均值会削弱这个信息。而多头注意力通过多个并行的attention层，每个层关注不同的信息，从而可以捕捉到更丰富和多样的上下文信息，提升模型的性能。文献中提到，在这项工作中，采用了8个并行的attention层或head，每个head的大小减小，总的计算成本与具有全部维度的单个head的attention相似。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 32,
+      "question": "Transformer 中使用了哪三种多头注意力？",
+      "reference": "编码器-解码器注意力、编码器自注意力、解码器自注意力（带掩码）。",
+      "retrieval_query": "Transformer 中使用了哪三种多头注意力？",
+      "generated": "根据参考资料中的信息，Transformer模型在三种不同的位置使用了多头注意力（Multi-Head Attention）：\n\n1. **编码器-解码器attention**：这种注意力机制的query来自前一个解码器层，而key和value则来自编码器的输出。这种设计允许解码器中的每个位置能够关注输入序列中的所有位置，从而模仿序列到序列模型中典型的编码器-解码器的注意力机制。\n\n2. **自注意力（Self-Attention）**：这是一种单序列内部的注意力机制，用于关联单个序列的不同位置以计算序列的表示。自注意力已被成功应用于多种任务，包括阅读理解、摘要生成等。\n\n3. **解码器中的掩码自注意力**：在解码器堆栈中，自注意力子层进行了修改以防止位置关注到后面的位置。这种掩码结合还涉及将输出嵌入偏移一个位置，确保对位置i的预测只能依赖于位置i之前的已知输出。\n\n这三种多头注意力机制共同工作，使Transformer能够在不需要循环神经网络或卷积网络的情况下，捕捉输入和输出之间的全局依赖关系。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 33,
+      "question": "解码器自注意力为什么需要掩码？",
+      "reference": "防止当前位置关注到后续位置，保持自回归特性。",
+      "retrieval_query": "解码器自注意力为什么需要掩码？",
+      "generated": "解码器中的自注意力机制需要掩码，是因为解码器在生成下一个元素时会消耗先前生成的符号作为附加输入，因此解码器是自回归的。为了确保在预测位置i时只能依赖小于i的已知输出，需要对位置关注进行掩码，防止位置i的注意力机制关注到位置i及其之后的位置。这种掩码结合将输出嵌入偏移一个位置，确保对位置的预测只能依赖小于i的已知输出。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 34,
+      "question": "掩码是如何实现的？",
+      "reference": "将 softmax 输入中对应非法连接的值设为 -∞。",
+      "retrieval_query": "掩码是如何实现的？",
+      "generated": "在解码器堆栈中的self-attention子层，为了防止位置关注到后面的位置，实现掩码的方法是对输出嵌入偏移一个位置，确保对位置的预测 i 只能依赖小于i 的已知输出。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 35,
+      "question": "论文使用的训练数据集是什么？",
+      "reference": "WMT 2014 英德数据集（约 450 万句对）和 WMT 2014 英法数据集（约 3600 万句对）。",
+      "retrieval_query": "论文使用的训练数据集是什么？",
+      "generated": "论文使用了标准的WMT 2014英语-德语数据集进行训练，该数据集包含约450万个句子对。对于英语-法语翻译，则使用了更大规模的WMT 2014英法数据集，包含3600万个句子。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 36,
+      "question": "句子是如何编码的？",
+      "reference": "使用字节对编码（byte-pair encoding，BPE）。",
+      "retrieval_query": "句子是如何编码的？",
+      "generated": "句子使用字节对编码进行编码。对于源语句和目标语句，共享大约37000个词符的词汇表。在英语-法语翻译中，词汇表被分成了32000个word-piece。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 37,
+      "question": "英德和英法任务的共享词表大小分别是多少？",
+      "reference": "英德约 37000 个 token，英法约 32000 个 token。",
+      "retrieval_query": "英德和英法任务的共享词表大小分别是多少？",
+      "generated": "根据提供的资料，英德任务和英法任务的共享词表大小如下：\n\n- 英德任务使用了大约37000个词符的共享词汇表。\n- 英法任务使用了32000个word-piece词汇表。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 38,
+      "question": "模型使用的优化器是什么？",
+      "reference": "Adam 优化器，β1=0.9，β2=0.98，ε=10^-9。",
+      "retrieval_query": "模型使用的优化器是什么？",
+      "generated": "要准确回答您的问题，我需要知道具体是指哪一个模型。不同的模型可能会使用不同的优化器。常见的优化器包括但不限于：\n\n- **随机梯度下降（SGD）**\n- **动量梯度下降（Momentum）**\n- **Nesterov动量梯度下降（Nesterov Momentum）**\n- **Adagrad**\n- **Adadelta**\n- **Adaptive Moment Estimation（Adam）**\n- **Root Mean Square Propagation（RMSprop）**\n- **Adamax**\n- **YF-Rule**\n\n如果可以提供具体的模型名称或者上下文，我可以给出更精确的答案。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 39,
+      "question": "学习率采用了什么调度策略？",
+      "reference": "随训练步数先线性增加，再按步数的平方根倒数比例衰减。",
+      "retrieval_query": "学习率采用了什么调度策略？",
+      "generated": "学习率采用的调度策略是，在训练过程中首先在warmup_steps（4000步）内线性地增加学习速率，之后将其与步骤数的平方根成比例地减小。具体的学习率变化公式如下：\n\n\\[\n\\small\nlrate_t = d_{model}^{-0.5} \\times \\min\\left(\\sqrt{\\frac{t}{warmup_{steps}}}, \\frac{1}{\\sqrt{t}}\\right)\n\\]\n\n其中 \\( t \\) 表示训练步骤数，\\( d_{model} \\) 是模型维度。这一策略有助于模型在训练初期更快地学习到重要的特征，而在训练后期则更平缓地调整权重，以避免过拟合。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 40,
+      "question": "使用了什么正则化方法？",
+      "reference": "残差 dropout、注意力 dropout 和标签平滑（label smoothing）。",
+      "retrieval_query": "使用了什么正则化方法？",
+      "generated": "在训练过程中，使用了三种正则化方法：\n1. 残差丢弃：在每个子层的输出上应用丢弃，然后在将它与子层的输入相加和规范化之前。\n2. 在编码器和解码器堆栈中，将丢弃应用到嵌入和位置编码的和。\n3. 对于基本模型，使用了0.1的丢弃率（Pdrop = 0.1）。\n4. 标签平滑（Label Smoothing）：虽然资料中没有详细说明具体的实施方式，但提到了在训练过程中使用了标签平滑方法，这通常用于防止过拟合。\n\n以上就是使用的正则化方法。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 41,
+      "question": "标签平滑的取值是多少，为什么使用？",
+      "reference": "ε_ls = 0.1，因为它会损害困惑度，但能提高 BLEU 分数。",
+      "retrieval_query": "标签平滑的取值是多少，为什么使用？",
+      "generated": "标签平滑的取值为 \\(\\epsilon_{ls} = 0.1\\)。使用标签平滑的主要原因是它可以使模型学习更加不确定，从而提高准确性和BLEU得分。虽然这可能会让模型对标签的理解变得不那么确定，但研究表明这种方法在实际应用中能取得更好的性能。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 42,
+      "question": "Transformer（big）在英德任务上达到的 BLEU 分数是多少？",
+      "reference": "28.4。",
+      "retrieval_query": "Transformer（big）在英德任务上达到的 BLEU 分数是多少？",
+      "generated": "根据表格2中的数据，Transformer (big) 模型在英语-德语 (EN-DE) 任务上的 BLEU 得分为 28.4。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 43,
+      "question": "Transformer（big）在英法任务上达到的 BLEU 分数是多少？",
+      "reference": "41.8。",
+      "retrieval_query": "Transformer（big）在英法任务上达到的 BLEU 分数是多少？",
+      "generated": "根据参考资料中的表格2，Transformer (big) 模型在英语-法语(WMT 2014 English-French)翻译任务上的BLEU得分为41.8。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 44,
+      "question": "训练 Transformer（big）使用了多少块 GPU、多长时间？",
+      "reference": "8 块 P100 GPU，训练 3.5 天。",
+      "retrieval_query": "训练 Transformer（big）使用了多少块 GPU、多长时间？",
+      "generated": "训练 Transformer (big) 模型使用了8块 NVIDIA P100 GPU，训练时间为3.5天。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 45,
+      "question": "论文的消融实验主要变化了哪些超参数？",
+      "reference": "注意力头数、注意力键维度、模型维度、前馈网络维度、dropout、位置编码方式等。",
+      "retrieval_query": "论文的消融实验主要变化了哪些超参数？",
+      "generated": "消融实验（Ablation Study）是一种研究方法，用于单独评估某个因素对模型性能的影响。在论文中，进行消融实验时主要变化的超参数通常取决于研究的具体内容和目标。超参数通常包括但不限于以下几个方面：\n\n1. **模型结构**：比如增加或减少模型的层数、节点数，或是改变卷积神经网络的过滤器大小等。\n\n2. **学习率（Learning Rate）**：这是影响模型训练速度和效果的重要超参数，不同的学习率设置可以导致模型收敛到不同的局部最小值。\n\n3. **批量大小（Batch Size）**：批量大小会影响模型的训练过程和梯度估计的稳定性。\n\n4. **正则化技术**：如L1、L2正则化，Dropout，或者BN（Batch Normalization）的使用与否及其参数设置。\n\n5. **优化器（Optimizer）**：不同的优化器，如SGD、Adam、RMSProp等，以及其对应的超参数如学习率衰减策略。\n\n6. **损失函数（Loss Function）**：选择不同形式的损失函数，如交叉熵损失、均方误差等。\n\n7. **数据增强（Data Augmentation）**：使用哪些数据增强技术，如翻转、旋转、缩放等，以及它们的强度和频率。\n\n8. **训练策略**：如是否使用预训练模型、迁移学习、微调等。\n\n9. **注意力机制（Attention Mechanism）**：在序列模型中，可以改变注意力机制的类型或其参数设置。\n\n10. **初始化方法（Initialization Methods）**：不同的初始化策略对模型的训练过程和结果也有显著影响。\n\n进行消融实验时，研究者通常会逐一改变上述一个或多个超参数，观察这些变化对模型性能的影响，从而确定哪些因素对模型效果最关键。这样可以帮助研究者理解各个超参数对模型性能的具体贡献，优化模型设计。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    },
+    {
+      "num": 46,
+      "question": "消融实验发现单头注意力比 8 头差多少？",
+      "reference": "单头注意力比最佳设置低约 0.9 BLEU。",
+      "retrieval_query": "消融实验发现单头注意力比 8 头差多少？",
+      "generated": "消融实验发现，单头注意力（即行（A）中的1个head）比最佳设置（8个head，即行（A）中的默认设置）差0.9 BLEU。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 47,
+      "question": "论文对位置编码做了哪两种方案的对比？",
+      "reference": "正弦编码与可学习的位置嵌入，结果几乎相同。",
+      "retrieval_query": "论文对位置编码做了哪两种方案的对比？",
+      "generated": "根据提供的资料，论文对位置编码做了两种方案的对比：\n\n1. 使用不同频率的正弦和余弦函数生成的位置编码；\n2. 使用学习到的位置嵌入。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 48,
+      "question": "论文的模型在英德翻译上相比此前最佳模型提升了多少 BLEU？",
+      "reference": "超过 2 BLEU。",
+      "retrieval_query": "论文的模型在英德翻译上相比此前最佳模型提升了多少 BLEU？",
+      "generated": "论文的模型在英德翻译上相比此前最佳模型提升了2.0个BLEU。这可以从表格2中的数据看出，此前的最佳模型是GNMT + RL，BLEU得分为24.6，而Transformer (big) 的BLEU得分为28.4，两者相差2.0个BLEU。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 49,
+      "question": "论文的结论中，Transformer 被预期应用于哪些其他任务？",
+      "reference": "图像、音频和视频等输入输出维度较大、需要高效并行处理的任务。",
+      "retrieval_query": "论文的结论中，Transformer 被预期应用于哪些其他任务？",
+      "generated": "根据论文的结论部分，作者们计划将Transformer扩展到除文本之外的涉及输入和输出模式的问题。具体来说，他们提到了以下几点预期的应用：\n\n1. 图像\n2. 音频\n3. 视频\n\n此外，他们还提到让生成具有更少的顺序性是他们的另一个研究目标，这可能暗示了在生成任务（如生成自然语言文本、图像描述等）中减少对顺序计算的依赖。",
+      "verdict": "正确",
+      "judge_raw": "正确"
+    },
+    {
+      "num": 50,
+      "question": "这篇论文对后续 NLP 领域最重要的影响是什么？",
+      "reference": "它奠定了 Transformer 架构的基础，成为 BERT、GPT 等预训练模型的基石，推动了整个 NLP 领域向基于注意力架构的范式转变。",
+      "retrieval_query": "这篇论文对后续 NLP 领域最重要的影响是什么？",
+      "generated": "要准确回答这个问题，我需要具体知道是哪篇论文。每篇NLP领域的论文可能对后续研究产生不同的影响。例如，有些论文可能提出了新的模型架构，推动了模型性能的大幅提升；有些论文可能引入了新的数据集或评测标准，推动了研究方向的发展；还有些论文可能提出了新的理论方法或解释，提供了新的研究视角。\n\n如果您能提供具体的论文名称或相关信息，我将能够更准确地分析该论文对后续NLP领域的影响。",
+      "verdict": "错误",
+      "judge_raw": "错误"
+    }
+  ]
+}
