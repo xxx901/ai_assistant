@@ -42,3 +42,9 @@
 2026-09-22 14:09:19 [INFO] core.router: 路由分类耗时: 14.14秒
 2026-09-22 14:09:19 [INFO] __main__: 路由结果: intent=rag, source=llm
 2026-09-22 14:09:19 [INFO] __main__: RAG未检索到相关内容，退化为通用回答
+2026-09-22 14:10:51 [INFO] core.router: 路由分类耗时: 1.04秒
+2026-09-22 14:10:51 [INFO] __main__: 路由结果: intent=rag, source=llm
+2026-09-22 14:10:51 [INFO] __main__: RAG未检索到相关内容，退化为通用回答
+2026-09-22 14:11:36 [INFO] core.router: 路由分类耗时: 1.03秒
+2026-09-22 14:11:36 [INFO] __main__: 路由结果: intent=rag, source=llm
+2026-09-22 14:11:36 [INFO] __main__: RAG未检索到相关内容，退化为通用回答
