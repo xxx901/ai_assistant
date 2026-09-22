@@ -13,7 +13,7 @@ from core.logging_config import setup_logging
 from llm.ollama_client import OllamaClient, OllamaClientError, is_ollama_running
 from core.router import route
 from core.agent_loop import run_agent_loop
-from core.memory import load_history, save_history, trim_history
+from memory import MemoryManager
 from skills.skill_runner import run_skill
 from rag.retriever import retrieve
 
@@ -58,23 +58,21 @@ def main():
     client = OllamaClient(
         base_url=OLLAMA_BASE_URL, model=OLLAMA_MODEL, timeout=OLLAMA_TIMEOUT, num_gpu=OLLAMA_NUM_GPU
     )
-    history = load_history()
+    memory = MemoryManager(client)
     print(f"本地AI助手已启动（模型：{OLLAMA_MODEL}），输入 exit 退出\n")
-    if history:
-        print(f"（已加载上次的对话记录，共{len(history)}条）\n")
-    logger.info(f"启动完成，模型={OLLAMA_MODEL}，历史记录条数={len(history)}")
+    logger.info(f"启动完成，模型={OLLAMA_MODEL}，长期记忆条数={memory.store.count()}")
 
     while True:
         user_input = input("你: ").strip()
         if user_input.lower() == "exit":
-            save_history(history)
-            logger.info("用户退出，历史记录已保存")
-            print("对话已保存，下次见。")
+            written = memory.flush_session()
+            logger.info(f"用户退出，会话末提炼写入 {written} 条记忆")
+            print(f"对话结束，本次额外整理了 {written} 条记忆，下次见。")
             break
         if not user_input:
             continue
 
-        result = route(user_input, client, history=history)
+        result = route(user_input, client)
         intent, source = result["intent"], result["source"]
         logger.info(f"路由结果: intent={intent}, source={source}")
 
@@ -93,22 +91,21 @@ def main():
             print(f"助手: {reply}\n")
             continue
 
-        history.append({"role": "user", "content": user_input})
+        mem_context = memory.retrieve(user_input)
+        messages = memory.messages_with(user_input)
         try:
             print("助手: ", end="", flush=True)
             full_reply = ""
             chat_start = time.time()
             first_chunk_logged = False
-            for chunk in client.chat(history, stream=True):
+            for chunk in client.chat(messages, stream=True, system=mem_context):
                 if not first_chunk_logged:
                     logger.info(f"对话首Token延迟: {time.time() - chat_start:.2f}秒")
                     first_chunk_logged = True
                 print(chunk, end="", flush=True)
                 full_reply += chunk
             print()
-            history.append({"role": "assistant", "content": full_reply})
-            history = trim_history(history)
-            save_history(history)
+            memory.observe(user_input, full_reply)
         except OllamaClientError as e:
             logger.error(f"对话调用失败: {e}")
             print(f"\n[出错了] {e}")
